@@ -2,6 +2,9 @@
 -- SECTION 4: VERIFICATION
 -- Purpose: Confirm all triggers, views, and procedures have been dropped.
 
+use E_Commerce;
+SELECT * FROM [user] where [Id] = 3
+
 PRINT '=== Verifying Drop ===';
 
 SELECT 'Triggers' AS ObjectType, COUNT(*) AS ObjectCount 

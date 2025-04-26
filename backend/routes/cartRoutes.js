@@ -1,10 +1,11 @@
-// Routes for cart APIs
 const express = require('express');
-const { addToCart } = require('../controllers/cartController');
-
 const router = express.Router();
+const cartController = require('../controllers/cartController');
+const { checkBuyerAuth } = require('../middleware/buyerAuth');
 
-// Add item to cart
-router.post('/add', addToCart);
+router.get('/', checkBuyerAuth, cartController.getCart);
+router.post('/', checkBuyerAuth, cartController.addToCart);
+router.delete('/:cartItemId', checkBuyerAuth, cartController.deleteFromCart);
+router.post('/checkout', checkBuyerAuth, cartController.checkout);
 
 module.exports = router;

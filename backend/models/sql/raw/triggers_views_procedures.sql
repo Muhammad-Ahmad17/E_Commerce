@@ -29,6 +29,7 @@ IF EXISTS (SELECT 1 FROM sys.triggers WHERE name = 'trg_cleanup_cart_on_product_
     DROP TRIGGER trg_cleanup_cart_on_product_deactivation;
 GO
 
+use E_Commerce
 IF EXISTS (SELECT 1 FROM sys.triggers WHERE name = 'trg_assign_user_role')
     DROP TRIGGER trg_assign_user_role;
 GO
@@ -194,6 +195,8 @@ BEGIN
 END;
 GO
 
+
+-- droped the trigger to avoid conflict 
 CREATE TRIGGER trg_assign_user_role
 ON [user]
 AFTER INSERT
@@ -228,6 +231,59 @@ GO
 -- SECTION 2: VIEWS
 -- Purpose: Simplify data retrieval for UI and analytics.
 
+-- View to show products based on buyer's preferred category
+CREATE OR ALTER VIEW buyerCategoryProducts
+AS
+SELECT 
+    u.id AS user_id,
+    u.full_name,
+    b.preferences AS preferred_category,
+    c.id AS category_id,
+    c.name AS category_name,
+    p.id AS product_id,
+    p.name AS product_name,
+    p.price,
+    p.image_url,
+    v.vendor_name
+FROM [user] u
+INNER JOIN user_role ur ON u.id = ur.user_id
+INNER JOIN role r ON ur.role_id = r.id
+INNER JOIN buyer b ON u.id = b.user_id
+INNER JOIN category c ON b.preferences = c.name
+INNER JOIN product p ON c.id = p.category_id
+INNER JOIN vendor v ON p.vendor_id = v.id
+WHERE r.name = 'buyer' AND u.is_active = 1;
+GO
+
+SELECT * FROM buyerCategoryProducts
+
+-- View to show product details for buyers, filterable by product ID
+CREATE OR ALTER VIEW productDetails
+AS
+SELECT 
+    p.id AS product_id,
+    p.name AS product_name,
+    p.price,
+    p.description,
+    c.name AS category_name,
+    p.image_url,
+    v.vendor_name
+
+FROM product p
+INNER JOIN category c ON p.category_id = c.id
+INNER JOIN vendor v ON p.vendor_id = v.id
+INNER JOIN [user] u ON v.user_id = u.id
+WHERE u.is_active = 1
+  AND EXISTS (
+      SELECT 1 
+      FROM user_role ur 
+      INNER JOIN role r ON ur.role_id = r.id 
+      WHERE r.name = 'buyer'
+  );
+GO
+
+select * from productDetails where product_id = 1
+--useless view
 CREATE VIEW BuyerDashboardView
 AS
 SELECT 
@@ -250,21 +306,36 @@ LEFT JOIN product p ON p.category_id = (SELECT id FROM category WHERE name = b.p
 WHERE u.is_active = 1 AND p.is_active = 1;
 GO
 
-CREATE VIEW CartView
+
+CREATE OR ALTER VIEW buyerCartView
 AS
 SELECT 
-    c.id AS CartItemID,
-    c.user_id AS UserID,
-    p.id AS ProductID,
-    p.name AS ProductName,
-    p.price AS UnitPrice,
+    c.id AS cart_item_id,
+    c.user_id AS user_id,
+    p.id AS product_id,
+    p.name AS product_name,
+    p.description AS product_description,
+    p.price AS unit_price,
     c.quantity,
-    (p.price * c.quantity) AS TotalPrice,
-    p.image_url
+    (p.price * c.quantity) AS total_price,
+    p.image_url,
+    v.vendor_name,
+    cat.name AS category_name
 FROM cart c
-JOIN product p ON c.product_id = p.id
-WHERE p.is_active = 1;
+INNER JOIN product p ON c.product_id = p.id
+INNER JOIN vendor v ON p.vendor_id = v.id
+INNER JOIN category cat ON p.category_id = cat.id
+INNER JOIN [user] u ON c.user_id = u.id
+INNER JOIN user_role ur ON u.id = ur.user_id
+INNER JOIN role r ON ur.role_id = r.id
+WHERE p.is_active = 1
+  AND u.is_active = 1
+  AND r.name = 'buyer';
 GO
+
+
+SELECT * FROM buyerCartView WHERE user_id = 1;
+
 
 CREATE VIEW BuyerOrderHistoryView
 AS
@@ -289,26 +360,15 @@ JOIN product p ON oi.product_id = p.id
 JOIN address a ON so.shipping_address_id = a.id
 WHERE so.user_id IN (SELECT user_id FROM buyer);
 GO
-
-CREATE VIEW BuyerReviewHistoryView
+SELECT 
+   *
+FROM BuyerOrderHistoryView
+WHERE UserID = 1;
+-- View for vendor dashboard with low stock alert
+CREATE OR ALTER VIEW VendorDashboardView
 AS
 SELECT 
-    pr.id AS ReviewID,
-    b.user_id AS UserID,
-    p.name AS ProductName,
-    pr.rating,
-    pr.comment,
-    pr.review_date
-FROM product_review pr
-JOIN buyer b ON pr.buyer_id = b.id
-JOIN product p ON pr.product_id = p.id
-WHERE p.is_active = 1;
-GO
-
-CREATE VIEW VendorDashboardView
-AS
-SELECT 
-    u.id AS UserID,
+    v.id AS VendorID,
     v.vendor_name,
     p.id AS ProductID,
     p.name AS ProductName,
@@ -319,17 +379,25 @@ SELECT
     c.name AS CategoryName,
     cs.name AS SubCategoryName,
     pr.rating AS ProductRating,
-    pr.comment AS ProductComment
-FROM [user] u
-JOIN vendor v ON u.id = v.user_id
+    pr.comment AS ProductComment,
+    CASE 
+        WHEN p.stock_quantity < 5 THEN 'Low Stock'
+        ELSE 'Sufficient Stock'
+    END AS LowStockAlert
+FROM vendor v
+JOIN [user] u ON v.user_id = u.id
 JOIN product p ON v.id = p.vendor_id
 JOIN category c ON p.category_id = c.id
 JOIN category_sub cs ON p.category_sub_id = cs.id
 LEFT JOIN product_review pr ON p.id = pr.product_id
 WHERE u.is_active = 1 AND p.is_active = 1;
 GO
-
-
+GO
+SELECT
+    *
+FROM VendorDashboardView
+WHERE vendorId = 3
+use E_Commerce
 CREATE VIEW VendorPendingOrdersView
 AS
 SELECT 
@@ -352,6 +420,25 @@ JOIN [user] u ON so.user_id = u.id
 JOIN address a ON so.shipping_address_id = a.id
 WHERE so.status = 'Pending' AND p.is_active = 1;
 GO
+
+-- Show pending orders for vendor with VendorID = 11
+SELECT 
+    VendorID,
+    VendorName,
+    OrderID,
+    
+    BuyerName,
+    ProductName,
+    Quantity,
+    UnitPrice,
+    TotalPrice,
+    OrderDate,
+    ExpectedDeliveryDate,
+    ShippingAddress
+FROM VendorPendingOrdersView
+WHERE vendorid = 11;
+
+SELECT * FROM VendorPendingOrdersView WHERE vendorid = 1;
 
 CREATE VIEW VendorAnalyticsView
 AS
@@ -377,9 +464,163 @@ WHERE u.is_active = 1
 GROUP BY u.id, v.vendor_name, p.id, p.name;
 GO
 
+
+select * from VendorAnalyticsView where userid = 11
 -- SECTION 3: STORED PROCEDURES
 -- Purpose: Encapsulate business logic for user actions.
 
+CREATE OR ALTER PROCEDURE sp_add_buyer
+    @FullName NVARCHAR(100),
+    @Email NVARCHAR(100),
+    @Password NVARCHAR(256),
+    @Preferences NVARCHAR(20),
+    @AddressLine1 NVARCHAR(255),
+    @City NVARCHAR(100),
+    @PostalCode NVARCHAR(20),
+    @Country NVARCHAR(100),
+    @IsDefault BIT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        -- Validate inputs
+        IF @FullName IS NULL OR @Email IS NULL OR @Password IS NULL OR @Preferences IS NULL
+            THROW 50001, 'Full name, email, password, and preferences are required', 1;
+        IF @AddressLine1 IS NULL OR @City IS NULL OR @PostalCode IS NULL OR @Country IS NULL
+            THROW 50002, 'Address line 1, city, postal code, and country are required', 1;
+        IF @Preferences NOT IN ('male', 'female', 'children')
+            THROW 50003, 'Preferences must be male, female, or children', 1;
+
+        -- Check if email already exists
+        IF EXISTS (SELECT 1 FROM [user] WHERE email_address = @Email)
+            THROW 50004, 'Email already exists', 1;
+
+        DECLARE @UserID INT;
+        DECLARE @RoleID INT;
+
+        -- Start transaction
+        BEGIN TRANSACTION;
+
+        -- Insert into user table
+        INSERT INTO [user] (full_name, email_address, password_hash, created_at, is_active)
+        VALUES (@FullName, @Email, @Password, GETDATE(), 1);
+
+        -- Get the new user ID
+        SET @UserID = SCOPE_IDENTITY();
+
+        -- Get buyer role ID
+        SELECT @RoleID = id FROM role WHERE name = 'buyer';
+        IF @RoleID IS NULL
+        BEGIN
+            ROLLBACK;
+            THROW 50005, 'Buyer role not found', 1;
+        END;
+
+        -- Insert into user_role
+        INSERT INTO user_role (user_id, role_id, assigned_at)
+        VALUES (@UserID, @RoleID, GETDATE());
+
+        -- Insert into buyer table
+        INSERT INTO buyer (user_id, preferences, created_at)
+        VALUES (@UserID, @Preferences, GETDATE());
+
+        -- Insert into address table
+        INSERT INTO address (user_id, address_line1, city, postal_code, country, is_default)
+        VALUES (@UserID, @AddressLine1, @City, @PostalCode, @Country, @IsDefault);
+
+        COMMIT TRANSACTION;
+
+        -- Return success
+        SELECT @UserID AS user_id, 'Buyer added successfully' AS message;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK;
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorNumber INT = ERROR_NUMBER();
+        SELECT 0 AS user_id, @ErrorMessage AS message;
+    END CATCH;
+END;
+GO
+
+-- Stored procedure to add a vendor with address
+CREATE OR ALTER PROCEDURE sp_add_vendor
+    @FullName NVARCHAR(100),
+    @Email NVARCHAR(100),
+    @Password NVARCHAR(256),
+    @VendorName NVARCHAR(100),
+    @AddressLine1 NVARCHAR(255),
+    @City NVARCHAR(100),
+    @PostalCode NVARCHAR(20),
+    @Country NVARCHAR(100),
+    @IsDefault BIT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        -- Validate inputs
+        IF @FullName IS NULL OR @Email IS NULL OR @Password IS NULL OR @VendorName IS NULL
+            THROW 50001, 'Full name, email, password, and vendor name are required', 1;
+        IF @AddressLine1 IS NULL OR @City IS NULL OR @PostalCode IS NULL OR @Country IS NULL
+            THROW 50002, 'Address line 1, city, postal code, and country are required', 1;
+
+        -- Check if email already exists
+        IF EXISTS (SELECT 1 FROM [user] WHERE email_address = @Email)
+            THROW 50003, 'Email already exists', 1;
+
+        -- Check if vendor name already exists
+        IF EXISTS (SELECT 1 FROM vendor WHERE vendor_name = @VendorName)
+            THROW 50004, 'Vendor name already exists', 1;
+
+        DECLARE @UserID INT;
+        DECLARE @RoleID INT;
+
+        -- Start transaction
+        BEGIN TRANSACTION;
+
+        -- Insert into user table
+        INSERT INTO [user] (full_name, email_address, password_hash, created_at, is_active)
+        VALUES (@FullName, @Email, @Password, GETDATE(), 1);
+
+        -- Get the new user ID
+        SET @UserID = SCOPE_IDENTITY();
+
+        -- Get vendor role ID
+        SELECT @RoleID = id FROM role WHERE name = 'vendor';
+        IF @RoleID IS NULL
+        BEGIN
+            ROLLBACK;
+            THROW 50005, 'Vendor role not found', 1;
+        END;
+
+        -- Insert into user_role
+        INSERT INTO user_role (user_id, role_id, assigned_at)
+        VALUES (@UserID, @RoleID, GETDATE());
+
+        -- Insert into vendor table
+        INSERT INTO vendor (user_id, vendor_name, created_at)
+        VALUES (@UserID, @VendorName, GETDATE());
+
+        -- Insert into address table
+        INSERT INTO address (user_id, address_line1, city, postal_code, country, is_default)
+        VALUES (@UserID, @AddressLine1, @City, @PostalCode, @Country, @IsDefault);
+
+        COMMIT TRANSACTION;
+
+        -- Return success
+        SELECT @UserID AS user_id, 'Vendor added successfully' AS message;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK;
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorNumber INT = ERROR_NUMBER();
+        SELECT 0 AS user_id, @ErrorMessage AS message;
+    END CATCH;
+END;
+GO
+
+-- droped the procedure to avoid conflict
 CREATE PROCEDURE sp_register_user
     @FullName NVARCHAR(100),
     @EmailAddress NVARCHAR(100),

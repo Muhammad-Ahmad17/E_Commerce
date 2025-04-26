@@ -1,10 +1,15 @@
-// Routes for vendor APIs
 const express = require('express');
-const { getPendingOrders } = require('../controllers/vendorController');
-
 const router = express.Router();
+const vendorController = require('../controllers/vendorController');
+const { checkVendorAuth } = require('../middleware/vendorAuth');
 
-// Get pending orders for vendor
-router.get('/orders/pending', getPendingOrders);
+
+router.get('/products', checkVendorAuth, vendorController.getMyProducts);
+router.post('/products', checkVendorAuth, vendorController.addProduct);
+router.put('/products/:id/quantity', checkVendorAuth, vendorController.updateProduct);
+router.delete('/products/:id', checkVendorAuth, vendorController.deleteProduct);
+router.get('/profile', checkVendorAuth, vendorController.getProfile);
+router.get('/pending-orders', checkVendorAuth, vendorController.getPendingOrders);
+router.get('/analytics', checkVendorAuth, vendorController.getAnalytics);
 
 module.exports = router;

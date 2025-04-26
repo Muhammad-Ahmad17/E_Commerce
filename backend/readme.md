@@ -1,51 +1,21 @@
-backend/
+ecommerce-backend/
 ├── config/
-│   ├── db.js
-│   └── env.js
+│   └── db.js                   # Database connection config
 ├── controllers/
-│   ├── authController.js
-│   ├── userController.js
-│   ├── productController.js
-│   ├── orderController.js
-│   ├── vendorController.js
-│   └── cartController.js
+│   ├── buyerController.js      # Buyer-related endpoints
+│   ├── vendorController.js     # Vendor-related endpoints
+│   └── registrationController.js # Auth-related endpoints
 ├── middleware/
-│   ├── authMiddleware.js
-│   ├── errorMiddleware.js
-│   └── validateMiddleware.js
+│   ├── auth.js                # Generic checkAuth middleware
+│   ├── buyerAuth.js           # Buyer-specific auth middleware
+│   └── vendorAuth.js          # Vendor-specific auth middleware
 ├── models/
-│   ├── userModel.js
-│   ├── productModel.js
-│   ├── orderModel.js
-│   ├── vendorModel.js
-│   ├── cartModel.js
-│   ├── categoryModel.js
-│   └── addressModel.js
+│   ├── Buyer.js               # Buyer model with SQL queries
+│   ├── Vendor.js              # Vendor model with SQL queries
+│   └── Registration.js        # Registration model with SQL queries
 ├── routes/
-│   ├── authRoutes.js
-│   ├── userRoutes.js
-│   ├── productRoutes.js
-│   ├── orderRoutes.js
-│   ├── vendorRoutes.js
-│   └── cartRoutes.js
-├── services/
-│   ├── authService.js
-│   ├── userService.js
-│   ├── productService.js
-│   ├── orderService.js
-│   ├── vendorService.js
-│   └── cartService.js
-├── utils/
-│   ├── logger.js
-│   ├── constants.js
-│   └── helpers.js
-├── tests/
-│   ├── auth.test.js
-│   ├── user.test.js
-│   ├── product.test.js
-│   ├── order.test.js
-│   └── vendor.test.js
-├── .env
-├── package.json
-├── server.js
-└── README.md
+│   ├── buyerRoutes.js         # Buyer routes
+│   ├── vendorRoutes.js        # Vendor routes
+│   └── authRoutes.js          # Auth routes
+├── package.json               # Project dependencies
+└── app.js                     # Main Express app

@@ -1,17 +1,24 @@
-// Main server file to initialize Express and connect routes
 const express = require('express');
 const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
-const vendorRoutes = require('./routes/vendorRoutes');
+
+const registrationRoutes = require('./routes/registrationRoutes');
+const buyerRoutes = require('./routes/buyerRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const vendorRoutes = require('./routes/vendorRoutes');
 
 dotenv.config();
+const PORT = process.env.PORT || 5000;
+
 const app = express();
 
+// Middleware to parse JSON bodies
 app.use(express.json());
 
 // Routes
-app.use('/api/cart', cartRoutes);
+app.use('/api/registration', registrationRoutes);
+app.use('/api/buyer', buyerRoutes);
+app.use('/api/buyer/cart', cartRoutes); // Cart routes under /api/buyer/cart
 app.use('/api/vendors', vendorRoutes);
 
 // Basic error handling
@@ -20,8 +27,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
-
+// Start server
 const startServer = async () => {
   try {
     await connectDB();
