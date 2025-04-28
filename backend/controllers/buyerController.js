@@ -19,7 +19,8 @@ exports.getRecommendedProducts = async (req, res) => {
 exports.getSelectedProducts = async (req, res) => {
   try {
     const userId = req.user.id;
-    const category = req.query.category;
+    const category = req.query.category; // hardcode 
+    console.log('Category:', category); // Debugging line to check the category value
     if (!category) {
       return res.status(400).json({ message: 'Category is required' });
     }
@@ -38,7 +39,7 @@ exports.getSelectedProducts = async (req, res) => {
 exports.getProductDetails = async (req, res) => {
   try {
     const userId = req.user.id;
-    const productId = req.params.id;
+    const productId = req.params.id; // from frontend on product click get id
     const product = await Buyer.getProductDetails(userId, productId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });

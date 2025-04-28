@@ -38,15 +38,26 @@ WHERE p.is_active = 1
   AND r.name = 'buyer';
 GO
 ---
-select * from buyerCartView 
-join product p on p.id = buyerCartView.product_id
-where user_id = 1;
+SELECT cart_item_id, user_id, product_id, product_name, product_description, 
+          unit_price, quantity, total_price, image_url, vendor_name, category_name
+          FROM buyerCartView
+          WHERE user_id = 3
+
+SELECT name 
+FROM sys.views;
+
+
+ SELECT cart_item_id, user_id, product_id, product_name, product_description, 
+               unit_price, quantity, total_price, vendor_name, category_name
+        FROM buyerCartView
+        join product p on p.id = buyerCartView.product_id
+        WHERE user_id = 1
 
 
 SELECT cart_item_id, user_id, product_id, product_name, product_description, 
                unit_price, quantity, total_price, image_url, vendor_name, category_name
         FROM buyerCartView
-        WHERE user_id = 1
+        WHERE user_id   = 1
 ---
 
 CREATE PROCEDURE sp_add_to_cart
@@ -124,24 +135,38 @@ BEGIN
     END
 END;
 GO
-
-CREATE PROCEDURE sp_checkout
-    @UserID INT,
-    @ShippingAddressID INT
+CREATE OR ALTER PROCEDURE sp_checkout
+    @UserID INT
 AS
 BEGIN
     SET NOCOUNT ON;
     
     DECLARE @TotalAmount DECIMAL(10,2);
     DECLARE @OrderID INT;
+    DECLARE @ShippingAddressID INT;
 
+    -- Calculate total amount
     SELECT @TotalAmount = SUM(p.price * c.quantity)
     FROM cart c
     JOIN product p ON c.product_id = p.id
     WHERE c.user_id = @UserID;
 
+    -- Fetch default address for the user
+    SELECT TOP 1 @ShippingAddressID = id
+    FROM address
+    WHERE user_id = @UserID AND is_default = 1;
+
+    -- If no default address, take first valid address
+    IF @ShippingAddressID IS NULL
+    BEGIN
+        SELECT TOP 1 @ShippingAddressID = id
+        FROM address
+        WHERE user_id = @UserID;
+    END
+
+    -- Validate cart, address, and stock
     IF @TotalAmount > 0 
-       AND EXISTS (SELECT 1 FROM address WHERE id = @ShippingAddressID AND user_id = @UserID)
+       AND @ShippingAddressID IS NOT NULL
        AND NOT EXISTS (
            SELECT 1 
            FROM cart c
@@ -152,27 +177,32 @@ BEGIN
         BEGIN TRY
             BEGIN TRANSACTION;
 
+            -- Insert order
             INSERT INTO shop_order (user_id, total_amount, status, payment_method, shipping_address_id, expected_delivery_date)
             VALUES (@UserID, @TotalAmount, 'Pending', 'CashOnDelivery', @ShippingAddressID, DATEADD(DAY, 2, GETDATE()));
 
             SET @OrderID = SCOPE_IDENTITY();
 
+            -- Insert order items
             INSERT INTO order_items (order_id, product_id, quantity, unit_price)
             SELECT @OrderID, c.product_id, c.quantity, p.price
             FROM cart c
             JOIN product p ON c.product_id = p.id
             WHERE c.user_id = @UserID;
 
+            -- Update product stock
             UPDATE p
             SET p.stock_quantity = p.stock_quantity - c.quantity
             FROM product p
             JOIN cart c ON p.id = c.product_id
             WHERE c.user_id = @UserID;
 
+            -- Clear cart
             DELETE FROM cart WHERE user_id = @UserID;
 
             COMMIT TRANSACTION;
 
+            -- Return order details
             SELECT 
                 @OrderID AS OrderID,
                 so.order_date,
@@ -200,7 +230,8 @@ BEGIN
     END
     ELSE
     BEGIN
-        SELECT 'Cart is empty, invalid address, or insufficient stock' AS Message, 0 AS OrderID;
+        SELECT 'Cart is empty, no valid address, or insufficient stock' AS Message, 0 AS OrderID;
     END
 END;
 GO
+

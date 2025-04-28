@@ -368,6 +368,7 @@ WHERE UserID = 1;
 CREATE OR ALTER VIEW VendorDashboardView
 AS
 SELECT 
+    u.id AS UserID,                -- Add this line
     v.id AS VendorID,
     v.vendor_name,
     p.id AS ProductID,
@@ -392,11 +393,8 @@ JOIN category_sub cs ON p.category_sub_id = cs.id
 LEFT JOIN product_review pr ON p.id = pr.product_id
 WHERE u.is_active = 1 AND p.is_active = 1;
 GO
-GO
-SELECT
-    *
-FROM VendorDashboardView
-WHERE vendorId = 3
+
+
 use E_Commerce
 CREATE VIEW VendorPendingOrdersView
 AS

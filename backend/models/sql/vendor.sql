@@ -68,7 +68,9 @@ BEGIN
         SELECT ERROR_MESSAGE() AS Message, 0 AS ProductID;
     END CATCH
 END;
-GO
+
+
+
 
 CREATE PROCEDURE sp_update_product_quantity
     @ProductID INT,
@@ -188,10 +190,14 @@ GO
 -- test sp_get_vendor_products
 EXEC sp_get_vendor_products @VendorID = 1;
 
+SELECT * FROM vendor WHERE user_id = 12
+SELECT * FROM [user] WHERE id = 12 AND is_active = 1;
+SELECT * FROM product WHERE vendor_id = 3 AND is_active = 1;
 
 CREATE OR ALTER VIEW VendorDashboardView
 AS
 SELECT 
+    u.id AS UserID,                -- Add this line
     v.id AS VendorID,
     v.vendor_name,
     p.id AS ProductID,
@@ -216,10 +222,10 @@ JOIN category_sub cs ON p.category_sub_id = cs.id
 LEFT JOIN product_review pr ON p.id = pr.product_id
 WHERE u.is_active = 1 AND p.is_active = 1;
 GO
-SELECT
-    *
+SELECT *
 FROM VendorDashboardView
-WHERE vendorid = 1
+WHERE vendorid   = 1
+
 
 CREATE VIEW VendorPendingOrdersView
 AS
@@ -263,7 +269,7 @@ WHERE vendorid = 11;
 
 SELECT * FROM VendorPendingOrdersView WHERE vendorid = 1;
 
-CREATE VIEW VendorAnalyticsView
+CREATE or ALTER VIEW VendorAnalyticsView
 AS
 SELECT 
     u.id AS UserID,
@@ -288,4 +294,7 @@ GROUP BY u.id, v.vendor_name, p.id, p.name;
 GO
 
 
-select * from VendorAnalyticsView where userid = 11
+SELECT v.id AS VendorID, v.vendor_name, va.*
+FROM VendorAnalyticsView va
+JOIN vendor v ON v.user_id = va.UserID
+WHERE v.id = 1

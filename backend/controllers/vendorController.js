@@ -29,11 +29,19 @@ exports.getMyProducts = async (req, res) => {
 exports.addProduct = async (req, res) => {
   try {
     const vendorId = req.user.id;
-    const { name, price, description, stock_quantity, category_id } = req.body;
-    if (!name || !price || !stock_quantity || !category_id) {
-      return res.status(400).json({ message: 'Name, price, stock_quantity, and category_id are required' });
+    const { name, price, description, stock_quantity, category_name, sub_category_name, image_url } = req.body;
+    if (!name || !price || !stock_quantity || !category_name || !sub_category_name) {
+      return res.status(400).json({ message: 'Name, price, stock_quantity, category_name, and sub_category_name are required' });
     }
-    const product = await Vendor.addProduct(vendorId, { name, price, description, stock_quantity, category_id });
+    const product = await Vendor.addProduct(vendorId, { 
+      name, 
+      price, 
+      description, 
+      stock_quantity, 
+      category_name, 
+      sub_category_name, 
+      image_url 
+    });
     res.status(201).json({ message: 'Product added successfully', product });
   } catch (error) {
     console.error('Error adding product:', error.message);
@@ -50,13 +58,12 @@ exports.updateProduct = async (req, res) => {
     if (stock_quantity === undefined) {
       return res.status(400).json({ message: 'stock_quantity is required' });
     }
-    const product = await Vendor.updateProduct(vendorId, productId, { stock_quantity });
+    const product = await Vendor.updateProduct(vendorId, productId, stock_quantity);
     if (!product) {
       return res.status(404).json({ message: 'Product not found or not owned by vendor' });
     }
     res.json({ message: 'Product quantity updated successfully', product });
   } catch (error) {
-    console.error('Error updating product quantity:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -80,8 +87,10 @@ exports.deleteProduct = async (req, res) => {
 // Get vendor profile
 exports.getProfile = async (req, res) => {
   try {
-    const vendorId = req.user.id;
-    const profile = await Vendor.getProfile(vendorId);
+    const userId = req.user.id; // userid == vendor id
+    console.log('UserID from token:', userId);
+    const profile = await Vendor.getProfile(userId);
+    console.log('UserID from token:', req.user.id);
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
     }
@@ -96,6 +105,7 @@ exports.getProfile = async (req, res) => {
 exports.getPendingOrders = async (req, res) => {
   try {
     const vendorId = req.user.id;
+    console.log('Vendor ID from token:', vendorId);
     const orders = await Vendor.getPendingOrders(vendorId);
     if (!orders.length) {
       return res.status(404).json({ message: 'No pending orders found' });
@@ -110,11 +120,11 @@ exports.getPendingOrders = async (req, res) => {
 // Get vendor analytics
 exports.getAnalytics = async (req, res) => {
   try {
-    const vendorId = req.user.id;
-    const analytics = await Vendor.getAnalytics(vendorId);
+    const userId = req.user.id;  // userid == vendor id
+    console.log('UserID from token:', userId);
+    const analytics = await Vendor.getAnalytics(userId);
     res.json(analytics);
   } catch (error) {
-    console.error('Error fetching vendor analytics:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

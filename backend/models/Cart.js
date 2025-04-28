@@ -50,12 +50,11 @@ class Cart {
     }
   }
 
-  static async checkout(userId, shippingAddressId) {
+  static async checkout(userId) {
     try {
       const pool = await connectDB();
       const result = await pool.request()
         .input('UserID', sql.Int, userId)
-        .input('ShippingAddressID', sql.Int, shippingAddressId)
         .execute('sp_checkout');
 
       const record = result.recordset[0];

@@ -10,7 +10,7 @@ const Registration = require('../models/Registration');
 
 exports.register = async (req, res) => {
   try {
-    const { full_name, email_address, password, role, vendor_name, preferences, address_line1, city, postal_code, country, is_default } = req.body;
+    const { full_name, email_address, password, role, vendor_name, preferences, address_line1, city, postal_code, country } = req.body;
     if (!full_name || !email_address || !password || !role || !address_line1 || !city || !postal_code || !country) {
       return res.status(400).json({ message: 'Full name, email, password, role, and address details are required' });
     }
@@ -55,11 +55,11 @@ exports.logout = async (req, res) => {
 exports.updatePassword = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { new_password } = req.body;
-    if (!new_password) {
+    const { newPassword } = req.body;
+    if (!newPassword) {
       return res.status(400).json({ message: 'New password is required' });
     }
-    await Registration.updatePassword(userId, new_password);
+    await Registration.updatePassword(userId, newPassword);
     res.json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error('Error updating password:', error.message);

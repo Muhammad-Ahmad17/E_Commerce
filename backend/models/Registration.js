@@ -8,27 +8,27 @@ class Registration {
 
       if (userData.role === 'buyer') {
         result = await pool.request()
-          .input('FullName', sql.NVarChar, userData.full_name)
-          .input('Email', sql.NVarChar, userData.email_address)
+          .input('FullName', sql.NVarChar, userData.fullName)
+          .input('Email', sql.NVarChar, userData.email)
           .input('Password', sql.NVarChar, userData.password)
           .input('Preferences', sql.NVarChar, userData.preferences)
-          .input('AddressLine1', sql.NVarChar, userData.address_line1)
+          .input('AddressLine1', sql.NVarChar, userData.addressLine1)
           .input('City', sql.NVarChar, userData.city)
-          .input('PostalCode', sql.NVarChar, userData.postal_code)
+          .input('PostalCode', sql.NVarChar, userData.postalCode)
           .input('Country', sql.NVarChar, userData.country)
-          .input('IsDefault', sql.Bit, userData.is_default || 1)
+          .input('IsDefault', sql.Bit, userData.isDefault || 1)
           .execute('sp_add_buyer');
       } else if (userData.role === 'vendor') {
         result = await pool.request()
-          .input('FullName', sql.NVarChar, userData.full_name)
-          .input('Email', sql.NVarChar, userData.email_address)
+          .input('FullName', sql.NVarChar, userData.fullName)
+          .input('Email', sql.NVarChar, userData.email)
           .input('Password', sql.NVarChar, userData.password)
-          .input('VendorName', sql.NVarChar, userData.vendor_name)
-          .input('AddressLine1', sql.NVarChar, userData.address_line1)
+          .input('Preferences', sql.NVarChar, userData.preferences)
+          .input('AddressLine1', sql.NVarChar, userData.addressLine1)
           .input('City', sql.NVarChar, userData.city)
-          .input('PostalCode', sql.NVarChar, userData.postal_code)
+          .input('PostalCode', sql.NVarChar, userData.postalCode)
           .input('Country', sql.NVarChar, userData.country)
-          .input('IsDefault', sql.Bit, userData.is_default || 1)
+          .input('IsDefault', sql.Bit, userData.isDefault || 1)
           .execute('sp_add_vendor');
       } else {
         throw new Error('Invalid role specified');
@@ -93,8 +93,8 @@ class Registration {
       `;
       const result = await pool.request()
         .input('UserID', sql.Int, userId)
-        .input('FullName', sql.NVarChar, profileData.full_name)
-        .input('Email', sql.NVarChar, profileData.email_address)
+        .input('FullName', sql.NVarChar, profileData.fullName)
+        .input('Email', sql.NVarChar, profileData.email)
         .query(query);
       return result.recordset[0];
     } catch (error) {

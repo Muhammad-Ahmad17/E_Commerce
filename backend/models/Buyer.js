@@ -39,7 +39,7 @@ class Buyer {
           price,
           category_name,
           vendor_name
-        FROM vw_buyer_category_products
+        FROM buyerCategoryProducts
         WHERE user_id = @UserID AND category_name = @Category
       `;
       const result = await pool.request()
@@ -58,7 +58,7 @@ class Buyer {
       const pool = await connectDB();
       // SQL Query: Fetch detailed product info from vw_product_details
       const query = `
-        SELECT 
+         SELECT 
           product_id,
           product_name,
           price,
@@ -66,7 +66,7 @@ class Buyer {
           category_name,
           vendor_name,
           image_url
-        FROM vw_product_details
+        FROM productDetails
         WHERE product_id = @ProductID
       `;
       const result = await pool.request()

@@ -1,5 +1,5 @@
 
-const Cart = require('../models/Cart');
+const Cart = require('../models/Cart'); // Assuming you have a Cart model defined in models/cart.js
 
 exports.getCart = async (req, res) => {
   try {
@@ -14,7 +14,6 @@ exports.getCart = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 exports.addToCart = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -55,11 +54,7 @@ exports.deleteFromCart = async (req, res) => {
 exports.checkout = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { shipping_address_id } = req.body;
-    if (!shipping_address_id) {
-      return res.status(400).json({ message: 'Shipping address ID is required' });
-    }
-    const orderDetails = await Cart.checkout(userId, shipping_address_id);
+    const orderDetails = await Cart.checkout(userId);
     res.json({ message: 'Checkout successful', orderDetails });
   } catch (error) {
     console.error('Error during checkout:', error.message);

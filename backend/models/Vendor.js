@@ -19,30 +19,29 @@ class Vendor {
   static async addProduct(vendorId, productData) {
     try {
       const pool = await connectDB();
-      // Stored Procedure: Insert a new product using sp_add_product
       const result = await pool.request()
         .input('VendorID', sql.Int, vendorId)
+        .input('CategoryName', sql.NVarChar, productData.category_name)
+        .input('SubCategoryName', sql.NVarChar, productData.sub_category_name)
         .input('Name', sql.NVarChar, productData.name)
-        .input('Price', sql.Decimal(10, 2), productData.price)
         .input('Description', sql.NVarChar, productData.description)
+        .input('Price', sql.Decimal(10, 2), productData.price)
         .input('StockQuantity', sql.Int, productData.stock_quantity)
-        .input('CategoryID', sql.Int, productData.category_id)
+        .input('ImageUrl', sql.NVarChar, productData.image_url || null)
         .execute('sp_add_product');
       return result.recordset[0];
     } catch (error) {
       throw new Error(`Failed to add product: ${error.message}`);
     }
   }
-
   // Update an existing product (only quantity)
-  static async updateProduct(vendorId, productId, productData) {
+  static async updateProduct(vendorId, productId, quantity) {
     try {
       const pool = await connectDB();
-      // Stored Procedure: Update product quantity using sp_update_product_quantity
       const result = await pool.request()
         .input('ProductID', sql.Int, productId)
-        .input('Quantity', sql.Int, productData.stock_quantity)
         .input('VendorID', sql.Int, vendorId)
+        .input('StockQuantity', sql.Int, quantity)
         .execute('sp_update_product_quantity');
 
       if (!result.recordset || result.recordset.length === 0) {
@@ -54,7 +53,6 @@ class Vendor {
       throw new Error(`Failed to update product quantity: ${error.message}`);
     }
   }
-
   // Delete a product
   static async deleteProduct(vendorId, productId) {
     try {
@@ -71,24 +69,19 @@ class Vendor {
   }
 
   // Get vendor profile
-  static async getProfile(vendorId) {
+  static async getProfile(userId) {
     try {
       const pool = await connectDB();
-      // View: Fetch vendor profile details from VendorDashboardView
+      // Join vendor and users table to get full profile
       const query = `
-        SELECT 
-          VendorID AS vendor_id,
-          vendor_name,
-          full_name,
-          email_address,
-          created_at
-        FROM VendorDashboardView
-        WHERE VendorID = @VendorID
+          SELECT *
+          FROM VendorDashboardView
+          WHERE vendorid = @UserID;
       `;
       const result = await pool.request()
-        .input('VendorID', sql.Int, vendorId)
+        .input('UserID', sql.Int, userId)
         .query(query);
-      return result.recordset[0];
+      return result.recordset;
     } catch (error) {
       throw new Error(`Failed to fetch vendor profile: ${error.message}`);
     }
@@ -125,23 +118,19 @@ class Vendor {
   }
 
   // Get vendor analytics
-  static async getAnalytics(vendorId) {
+  static async getAnalytics(userId) {
     try {
       const pool = await connectDB();
-      // View: Fetch vendor analytics from VendorAnalyticsView
       const query = `
-        SELECT 
-          total_orders,
-          total_sales,
-          total_products_sold,
-          active_products
-        FROM VendorAnalyticsView
-        WHERE vendor_id = @VendorID
+       SELECT v.id AS VendorID, v.vendor_name, va.*
+        FROM VendorAnalyticsView va
+        JOIN vendor v ON v.user_id = va.UserID
+        WHERE v.id = @userId
       `;
       const result = await pool.request()
-        .input('VendorID', sql.Int, vendorId)
+        .input('UserID', sql.Int, userId)
         .query(query);
-      return result.recordset[0];
+      return result.recordset; // Return all analytics records for this user
     } catch (error) {
       throw new Error(`Failed to fetch vendor analytics: ${error.message}`);
     }

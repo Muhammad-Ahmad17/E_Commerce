@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const cors = require('cors');
 const { connectDB } = require('./config/db');
 
 const registrationRoutes = require('./routes/registrationRoutes');
@@ -7,10 +8,12 @@ const buyerRoutes = require('./routes/buyerRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
 
-dotenv.config();
 const PORT = process.env.PORT || 5000;
 
 const app = express();
+dotenv.config();
+app.use(cors()); // <-- Then use cors
+dotenv.config();
 
 // Middleware to parse JSON bodies
 app.use(express.json());

@@ -13,6 +13,17 @@
 --   3. sp_checkout
 -- ===========================================
 
+
+SELECT 
+          product_id,
+          product_name,
+          price,
+          category_name,
+          vendor_name
+        FROM buyerCategoryProducts
+        WHERE user_id = 1 AND category_name = 'male'
+      
+
 -- View to show products based on buyer's preferred category
 CREATE OR ALTER VIEW buyerCategoryProducts
 AS
@@ -66,7 +77,17 @@ WHERE u.is_active = 1
       WHERE r.name = 'buyer'
   );
 GO
-
+ SELECT 
+          product_id,
+          product_name,
+          price,
+          description,
+          category_name,
+          vendor_name,
+          image_url
+        FROM productDetails
+        WHERE product_id = 1
+      `
 select * from productDetails where product_id = 1
 
 -- View to show buyer's cart
