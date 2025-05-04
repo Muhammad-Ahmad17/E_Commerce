@@ -1,0 +1,66 @@
+const Vendor = require('../models/vendor');
+
+exports.getProfile = async (req, res) => {
+  try {
+    const profile = await Vendor.getProfile(req.user.userId);
+    res.json(profile);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getMyProducts = async (req, res) => {
+  try {
+    const products = await Vendor.getMyProducts(req.user.userId);
+    res.json(products);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.addProduct = async (req, res) => {
+  try {
+    const result = await Vendor.addProduct(req.user.userId, req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+    const result = await Vendor.updateProduct(req.user.userId, productId, quantity);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { productId } = req.body;
+    const result = await Vendor.deleteProduct(req.user.userId, productId);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getPendingOrders = async (req, res) => {
+  try {
+    const orders = await Vendor.getPendingOrders(req.user.userId);
+    res.json(orders);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getAnalytics = async (req, res) => {
+  try {
+    const analytics = await Vendor.getAnalytics(req.user.userId);
+    res.json(analytics);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

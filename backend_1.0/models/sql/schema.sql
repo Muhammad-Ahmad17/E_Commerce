@@ -163,7 +163,7 @@ CREATE TABLE product (
 );
 
 -- 10. cart
--- Purpose: Stores buyer’s cart items.
+-- Purpose: Stores buyerï¿½s cart items.
 -- Why: Tracks products selected for purchase before checkout.
 -- Fix: FOREIGN KEY product_id to ON DELETE NO ACTION to avoid multiple cascade paths from user to cart.
 CREATE TABLE cart (
