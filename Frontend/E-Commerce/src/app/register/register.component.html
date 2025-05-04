@@ -1,0 +1,142 @@
+<div class="register-wrapper">
+  <div class="register-container">
+    <h2>Create Account</h2>
+    <p class="subtitle">Join our ecommerce platform</p>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <div class="form-group">
+        <label for="full_name" class="form-label">
+          <i class="fas fa-user"></i> Full Name
+        </label>
+        <input
+          type="text"
+          id="full_name"
+          formControlName="fullName"
+          class="form-input"
+          placeholder="Enter your full name"
+        />
+      </div>
+      <div class="form-group">
+        <label for="email" class="form-label">
+          <i class="fas fa-envelope"></i> Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-input"
+          placeholder="Enter your email"
+        />
+      </div>
+      <div class="form-group">
+        <label for="password" class="form-label">
+          <i class="fas fa-lock"></i> Password
+        </label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-input"
+          placeholder="Enter your password"
+        />
+      </div>
+      <div class="form-group">
+        <label for="role" class="form-label">
+          <i class="fas fa-user-tag"></i> Role
+        </label>
+        <select id="role" formControlName="role" class="form-input">
+          <option value="" disabled>Select your role</option>
+          <option value="buyer">Buyer</option>
+          <option value="vendor">Vendor</option>
+        </select>
+      </div>
+      @if(registerForm.get('role')?.value === 'buyer')
+      {<div class="form-group" >
+        <label for="preferences" class="form-label">
+          <i class="fas fa-heart"></i> Preferences
+        </label>
+        <input
+          type="text"
+          id="preferences"
+          formControlName="preferences"
+          class="form-input"
+          placeholder="E.g., male, female, children, etc."
+        />
+      </div>}
+      @if(registerForm.get('role')?.value === 'vendor')
+      {
+        <div class="form-group" >
+        <label for="vendor_name" class="form-label">
+          <i class="fas fa-store"></i> Vendor Name
+        </label>
+        <input
+          type="text"
+          id="vendor_name"
+          formControlName="vendorName"
+          class="form-input"
+          placeholder="Enter your store name"
+        />
+      </div>}
+      <div class="form-group">
+        <label for="address_line1" class="form-label">
+          <i class="fas fa-map-marker-alt"></i> Address Line 1
+        </label>
+        <input
+          type="text"
+          id="address_line1"
+          formControlName="addressLine1"
+          class="form-input"
+          placeholder="Enter your address"
+        />
+      </div>
+      <div class="form-group">
+        <label for="city" class="form-label">
+          <i class="fas fa-city"></i> City
+        </label>
+        <input
+          type="text"
+          id="city"
+          formControlName="city"
+          class="form-input"
+          placeholder="Enter your city"
+        />
+      </div>
+      <div class="form-group">
+        <label for="postal_code" class="form-label">
+          <i class="fas fa-mail-bulk"></i> Postal Code
+        </label>
+        <input
+          type="text"
+          id="postal_code"
+          formControlName="postalCode"
+          class="form-input"
+          placeholder="Enter your postal code"
+        />
+      </div>
+      <div class="form-group">
+        <label for="country" class="form-label">
+          <i class="fas fa-globe"></i> Country
+        </label>
+        <input
+          type="text"
+          id="country"
+          formControlName="country"
+          class="form-input"
+          placeholder="Enter your country"
+        />
+      </div>
+      <button
+        type="submit"
+        class="register-btn"
+        [disabled]="registerForm.invalid"
+      >
+        Sign Up
+      </button>
+    </form>
+    @if(errorMessage)
+    {<p class="error-message" >{{ errorMessage }}</p>}
+    <p class="login-link">
+      Already have an account? <a href="/login">Sign in</a>
+    </p>
+  </div>
+</div>
+
