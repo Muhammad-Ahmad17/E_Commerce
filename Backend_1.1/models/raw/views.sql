@@ -296,6 +296,7 @@ CREATE OR ALTER VIEW VendorAnalyticsView
 AS
 SELECT 
     u.userId,
+    v.vendorId,
     v.vendorName AS storeName,
     p.productId,
     p.productName,
@@ -319,5 +320,5 @@ LEFT JOIN OrderItem oi ON p.productId = oi.productId
 LEFT JOIN ShopOrder o ON oi.orderId = o.orderId
 LEFT JOIN ProductReview pr ON p.productId = pr.productId
 WHERE u.isActive = 1
-GROUP BY u.userId, v.vendorName, p.productId, p.productName;
+GROUP BY u.userId, v.vendorId,v.vendorName, p.productId, p.productName;
 GO

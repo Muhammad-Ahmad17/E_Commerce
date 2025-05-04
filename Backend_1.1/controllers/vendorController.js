@@ -2,7 +2,7 @@ const Vendor = require('../models/vendor');
 
 exports.getProfile = async (req, res) => {
   try {
-    const profile = await Vendor.getProfile(req.user.userId);
+    const profile = await Vendor.getProfile(req.user.vendorId);
     res.json(profile);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -11,7 +11,7 @@ exports.getProfile = async (req, res) => {
 
 exports.getMyProducts = async (req, res) => {
   try {
-    const products = await Vendor.getMyProducts(req.user.userId);
+    const products = await Vendor.getMyProducts(req.user.vendorId);
     res.json(products);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -20,7 +20,7 @@ exports.getMyProducts = async (req, res) => {
 
 exports.addProduct = async (req, res) => {
   try {
-    const result = await Vendor.addProduct(req.user.userId, req.body);
+    const result = await Vendor.addProduct(req.user.vendorId, req.body);
     res.json(result);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -30,7 +30,7 @@ exports.addProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
-    const result = await Vendor.updateProduct(req.user.userId, productId, quantity);
+    const result = await Vendor.updateProduct(req.user.vendorId, productId, quantity);
     res.json(result);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -40,7 +40,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const { productId } = req.body;
-    const result = await Vendor.deleteProduct(req.user.userId, productId);
+    const result = await Vendor.deleteProduct(req.user.vendorId, productId);
     res.json(result);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -49,7 +49,7 @@ exports.deleteProduct = async (req, res) => {
 
 exports.getPendingOrders = async (req, res) => {
   try {
-    const orders = await Vendor.getPendingOrders(req.user.userId);
+    const orders = await Vendor.getPendingOrders(req.user.vendorId);
     res.json(orders);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -58,7 +58,7 @@ exports.getPendingOrders = async (req, res) => {
 
 exports.getAnalytics = async (req, res) => {
   try {
-    const analytics = await Vendor.getAnalytics(req.user.userId);
+    const analytics = await Vendor.getAnalytics(req.user.vendorId);
     res.json(analytics);
   } catch (error) {
     res.status(400).json({ message: error.message });

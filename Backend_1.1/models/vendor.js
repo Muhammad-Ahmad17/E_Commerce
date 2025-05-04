@@ -3,11 +3,15 @@ const { sql, connectDB } = require('../config/db');
 class Vendor {
   // Get all products for the vendor using latest procedure/view
   static async getMyProducts(vendorId) {
+    console.log('Fetching vendor products for vendorId:', vendorId);
     try {
       const pool = await connectDB();
-      const result = await pool.request()
+      const query = `SELECT *
+        FROM VendorDashboardView
+        WHERE vendorId = @vendorId`;
+        const result = await pool.request()
         .input('vendorId', sql.Int, vendorId)
-        .execute('GetVendorProductsProcedure');
+        .query(query);
       return result.recordset;
     } catch (error) {
       throw new Error(`Failed to fetch vendor products: ${error.message}`);
@@ -16,6 +20,7 @@ class Vendor {
 
   // Add a new product using AddProductProcedure
   static async addProduct(vendorId, productData) {
+    console.log('Adding product for vendorId:', vendorId, 'productData:', productData);
     try {
       const pool = await connectDB();
       const result = await pool.request()
@@ -36,6 +41,7 @@ class Vendor {
 
   // Update product quantity using UpdateProductQuantityProcedure
   static async updateProduct(vendorId, productId, quantity) {
+    console.log('Updating product quantity for vendorId:', vendorId, 'productId:', productId, 'quantity:', quantity);   
     try {
       const pool = await connectDB();
       const result = await pool.request()
@@ -54,6 +60,7 @@ class Vendor {
 
   // Delete a product using DeleteProductProcedure
   static async deleteProduct(vendorId, productId) {
+    console.log('Deleting product for vendorId:', vendorId, 'productId:', productId);
     try {
       const pool = await connectDB();
       const result = await pool.request()
@@ -68,12 +75,20 @@ class Vendor {
 
   // Get vendor profile from VendorDashboardView
   static async getProfile(vendorId) {
+    console.log('Fetching vendor profile for vendorId:', vendorId);
     try {
       const pool = await connectDB();
       const query = `
-        SELECT *
-        FROM VendorDashboardView
-        WHERE vendorId = @vendorId
+        SELECT 
+        u.fullName,
+        u.emailAddress,
+        v.vendorName,
+        v.createdAt,
+        (a.addressLine1 + ', ' + a.city + ', ' + a.postalCode + ', ' + a.country) AS address
+      FROM Vendor v
+      JOIN [User] u ON v.userId = u.userId
+      LEFT JOIN Address a ON u.userId = a.userId AND a.isDefault = 1
+      WHERE v.vendorId = @vendorId
       `;
       const result = await pool.request()
         .input('vendorId', sql.Int, vendorId)
@@ -86,6 +101,7 @@ class Vendor {
 
   // Get pending orders from VendorPendingOrdersView
   static async getPendingOrders(vendorId) {
+    console.log('Fetching pending orders for vendorId:', vendorId);
     try {
       const pool = await connectDB();
       const query = `
@@ -104,6 +120,7 @@ class Vendor {
 
   // Get vendor analytics from VendorAnalyticsView
   static async getAnalytics(vendorId) {
+    console.log('Fetching vendor analytics for vendorId:', vendorId);
     try {
       const pool = await connectDB();
       const query = `

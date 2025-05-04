@@ -28,7 +28,7 @@ class Registration {
           .input('city', sql.NVarChar, userData.city)
           .input('postalCode', sql.NVarChar, userData.postalCode)
           .input('country', sql.NVarChar, userData.country)
-          .input('isDefault', sql.Bit, userData.isDefault ?? 1)
+          //.input('isDefault', sql.Bit, userData.isDefault ?? 1)
           .execute('AddVendorProcedure');
       } else {
         throw new Error('Invalid role specified');
@@ -40,11 +40,13 @@ class Registration {
       }
 
       return {
-        userId: buyerId || vendorId,
+        ...(userData.role === 'buyer' ? { buyerId: buyerId } : { vendorId: vendorId }),
+        // userId: buyerId || vendorId, // if needed
         email: userData.email,
         role: userData.role,
         message
       };
+      
     } catch (error) {
       throw new Error(`Failed to register user: ${error.message}`);
     }
