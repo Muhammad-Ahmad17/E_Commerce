@@ -72,14 +72,13 @@ class Registration {
 
       const user = result.recordset[0];
 
-      // Log the user object to see the structure
-      // This is useful for debugging to ensure the data is as expected
       console.log('User from DB:', user);
       return user; // Return the user record with hashed password and role
     } catch (error) {
       throw new Error(`Failed to login: ${error.message}`);
     }
   }
+  
   static async updatePassword(userId, newPassword) {
     try {
       const pool = await connectDB();

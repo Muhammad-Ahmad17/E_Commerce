@@ -119,6 +119,16 @@ EXEC AddProductProcedure
     @imageUrl = '/images/kids-tshirt.jpg';
 GO
 
+EXEC AddProductProcedure 
+    @vendorId = 2,
+    @categoryName = 'male',
+    @subCategoryName = 'clothes',
+    @productName = 't-shirts',
+    @description = 'Comfortable t shirt for for men',
+    @price = 1299.99,
+    @stockQuantity = 80,
+    @imageUrl = 'https://th.bing.com/th/id/OIP.mii6o50vDN0cJxqulxR-ggHaIG?w=174&h=191&c=7&r=0&o=5&cb=iwc2&dpr=1.4&pid=1.7';
+
 -- Add test buyers
 DECLARE @buyerRole INT;
 SELECT @buyerRole = roleId FROM Role WHERE roleName = 'buyer';
@@ -160,6 +170,8 @@ GO
 EXEC CheckoutProcedure @buyerId = 1, @addressId = 1;
 GO
 
+EXEC AddToCartProcedure @buyerId = 6, @productId = 2, @quantity = 2;
+EXEC CheckoutProcedure @buyerId = 6,addressId = 1;
 
 -- Add products to the cart for Buyer 1
 EXEC AddToCartProcedure @buyerId = 1, @productId = 1, @quantity = 2;

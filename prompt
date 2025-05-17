@@ -1,0 +1,450 @@
+Prompt for Generating a Full Frontend React Application for an E-Commerce Platform
+Objective
+Create a full-featured, single-page React application for an e-commerce platform that integrates with a provided backend API (running on http://localhost:5000). The application should support user registration, login, buyer functionalities (e.g., browsing products, managing cart, viewing order history), and vendor functionalities (e.g., managing products, viewing orders, analytics). The app must be responsive, use modern React practices, and follow a clean, modular code structure.
+Requirements
+General
+
+Framework: Use React (latest version, e.g., 18.x) with functional components and hooks.
+Styling: Use Tailwind CSS via CDN for responsive, utility-first styling.
+API Integration: Use Axios for making HTTP requests to the backend API.
+Routing: Use React Router DOM (v6) for client-side routing.
+State Management: Use React Context API for global state (e.g., user authentication, cart).
+Build Tool: Use Vite for a fast development experience and optimized builds.
+Error Handling: Implement proper error handling for API calls with user-friendly error messages (e.g., toast notifications using react-toastify).
+Form Handling: Use react-hook-form for form validation and management.
+Authentication: Persist JWT tokens in localStorage for session management and include them in API requests where required.
+Code Structure: Organize code in a modular way with separate folders for components, pages, hooks, contexts, and services.
+Responsive Design: Ensure the app is fully responsive across mobile, tablet, and desktop devices.
+
+API Integration
+The application must integrate with the following API endpoints (as per the provided Postman collection):
+Registration Routes
+
+POST /api/registration/register
+Register a new user (buyer or vendor).
+
+Payload example (buyer):
+{
+  "fullName": "John Doe",
+  "email": "john@example.com",
+  "password": "Password123!",
+  "preferences": "female",
+  "addressLine1": "123 Main St",
+  "city": "New York",
+  "postalCode": "10001",
+  "country": "USA",
+  "role": "buyer"
+}
+
+
+For vendors, include vendorName instead of preferences.
+
+
+
+POST /api/registration/login
+Log in a user and return a JWT token.
+
+Payload:
+{
+  "email": "john@example.com",
+  "password": "Password123!"
+}
+
+
+
+
+
+Buyer Routes (Require Authorization Header with JWT)
+
+GET /api/buyer/profile: Fetch buyer profile details.
+GET /api/buyer/recommended: Fetch recommended products.
+GET /api/buyer/selected?category=female: Fetch products by category and hear i hardcode female as reference in url tis may vary and our total catagory are 3 male female and children
+GET /api/buyer/product/:id: Fetch details of a specific product.
+GET /api/buyer/orders: Fetch order history.
+POST /api/buyer/addReview: Submit a review for a product.
+Payload:
+{
+  "productId": 2,
+  "rating": 2,
+  "comment": "Normal product"
+}
+
+
+
+
+
+Cart Routes (Require Authorization Header with JWT)
+
+GET /api/buyer/cart: Fetch the buyers cart.
+POST /api/buyer/cart/add: Add a product to the cart.
+Payload:
+{
+  "productId": 2,
+  "quantity": 2
+}
+
+
+
+
+DELETE /api/buyer/cart/delete: Remove a product from the cart.
+Payload:
+{
+  "productId": "1"
+}
+
+
+
+
+POST /api/buyer/cart/checkout: Process cart checkout.
+
+Vendor Routes (Require Authorization Header with JWT)
+
+GET /api/vendors/profile: Fetch vendor profile details.
+GET /api/vendors/products: Fetch all products listed by the vendor.
+POST /api/vendors/products: Add a new product.
+PUT /api/vendors/products/:id: Update an existing product.
+DELETE /api/vendors/products/:id: Delete a product.
+GET /api/vendors/orders: Fetch pending orders.
+GET /api/vendors/analytics: Fetch vendor analytics.
+
+Pages and Features
+
+Public Pages:
+Home Page: A landing page with a welcome message, featured products (from /api/buyer/recommended), and links to register/login.
+Register Page: Use the provided Register component (with Tailwind CSS classes instead of inline styles). Submit data to /api/registration/register.
+Login Page: A form for email and password, submitting to /api/registration/login. Store the JWT token in localStorage and redirect based on role (buyer to dashboard, vendor to vendor dashboard).
+
+
+Buyer Pages (Protected, require buyer role):
+Buyer Dashboard: Display a summary of recommended products (/api/buyer/recommended) and a search bar or option to select catagory at suitable position  to filter products by category (/api/buyer/selected?category=).
+Product Details Page: Show product details (/api/buyer/product/:id) with an option to add to cart (/api/buyer/cart/add) and submit a review (/api/buyer/addReview).
+Cart Page: Display cart contents (/api/buyer/cart), allow removing items (/api/buyer/cart/delete), and a checkout button (/api/buyer/cart/checkout).
+Order History Page: List past orders (/api/buyer/orders).
+Profile Page: Display and allow editing of buyer profile (/api/buyer/profile).
+
+
+Vendor Pages (Protected, require vendor role):
+Vendor Dashboard: Show analytics (/api/vendors/analytics) and a summary of pending orders (/api/vendors/orders).
+Product Management Page: List all vendor products (/api/vendors/products) with options to add (/api/vendors/products), edit (/api/vendors/products/:id), or delete (/api/vendors/products/:id) products.
+Order Management Page: Display and manage pending orders (/api/vendors/orders).
+Profile Page: Display and allow editing of vendor profile (/api/vendors/profile).
+
+
+404 Page: A custom page for invalid routes.
+
+Components
+
+Header: A navigation bar with links to Home, Login/Register (if not logged in), or Dashboard, Cart, Profile, Logout (based on role). Include a role-based greeting (e.g., "Hello, John (Buyer)").
+Footer: A simple footer with copyright and contact information.
+ProductCard: Display product details (image, name, price, etc.) with an "Add to Cart" button for buyers.
+CartItem: Show product details in the cart with quantity controls and a remove button.
+ReviewForm: A form for submitting product reviews (rating and comment).
+LoadingSpinner: A reusable spinner for API loading states.
+ErrorMessage: A component for displaying API errors.
+
+Project Structure
+Organize the project as follows:
+ecommerce-app/
+├── public/
+│   └── index.html
+├── src/
+│   ├── assets/
+│   │   └── (images, icons)
+│   ├── components/
+│   │   ├── Header.jsx
+│   │   ├── Footer.jsx
+│   │   ├── ProductCard.jsx
+│   │   ├── CartItem.jsx
+│   │   ├── ReviewForm.jsx
+│   │   ├── LoadingSpinner.jsx
+│   │   ├── ErrorMessage.jsx
+│   ├── pages/
+│   │   ├── public/
+│   │   │   ├── Home.jsx
+│   │   │   ├── Register.jsx
+│   │   │   ├── Login.jsx
+│   │   ├── buyer/
+│   │   │   ├── BuyerDashboard.jsx
+│   │   │   ├── ProductDetails.jsx
+│   │   │   ├── Cart.jsx
+│   │   │   ├── OrderHistory.jsx
+│   │   │   ├── Profile.jsx
+│   │   ├── vendor/
+│   │   │   ├── VendorDashboard.jsx
+│   │   │   ├── ProductManagement.jsx
+│   │   │   ├── OrderManagement.jsx
+│   │   │   ├── Profile.jsx
+│   │   ├── NotFound.jsx
+│   ├── contexts/
+│   │   ├── AuthContext.jsx
+│   │   ├── CartContext.jsx
+│   ├── hooks/
+│   │   ├── useAuth.js
+│   │   ├── useApi.js
+│   ├── services/
+│   │   ├── api.js (Axios instance and API functions)
+│   ├── App.jsx
+│   ├── main.jsx
+│   ├── index.css
+├── vite.config.js
+├── package.json
+
+Technical Details
+
+index.html:
+Include Tailwind CSS via CDN: https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css.
+Include React and React DOM via CDN for development (e.g., https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js).
+
+
+AuthContext:
+Store user data (email, role, token) and provide login/logout functions.
+Protect routes based on role (buyer or vendor).
+
+
+CartContext:
+Manage cart state locally and sync with /api/buyer/cart on mount.
+
+
+API Service:
+Create an Axios instance with base URL http://localhost:5000.
+Automatically include Authorization: Bearer <token> for protected routes.
+Handle 401 errors by logging out the user and redirecting to the login page.
+
+
+Routing:
+Use BrowserRouter with nested routes.
+
+Example route structure:
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/register" element={<Register />} />
+  <Route path="/login" element={<Login />} />
+  <Route element={<ProtectedRoute role="buyer" />}>
+    <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+    <Route path="/buyer/product/:id" element={<ProductDetails />} />
+    <Route path="/buyer/cart" element={<Cart />} />
+    <Route path="/buyer/orders" element={<OrderHistory />} />
+    <Route path="/buyer/profile" element={<Profile />} />
+  </Route>
+  <Route element={<ProtectedRoute role="vendor" />}>
+    <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+    <Route path="/vendor/products" element={<ProductManagement />} />
+    <Route path="/vendor/orders" element={<OrderManagement />} />
+    <Route path="/vendor/profile" element={<Profile />} />
+  </Route>
+  <Route path="*" element={<NotFound />} />
+</Routes>
+
+
+
+
+Form Validation:
+Use react-hook-form for all forms with validation rules (e.g., email format, password strength, required fields).
+Display error messages below each input.
+
+
+Notifications:
+Use react-toastify for success/error messages (e.g., "Product added to cart", "Failed to fetch products").
+
+
+Product Images:
+Since the API doesnt specify image handling, use placeholder images (e.g., from https://placehold.co) or allow vendors to upload images (multipart form data for /api/vendors/products).
+
+
+
+Styling Guidelines
+
+Use Tailwind CSS classes for all styling (e.g., flex, justify-center, bg-gray-100, p-4, rounded-lg).
+Ensure a consistent color scheme (e.g., blue for buttons, gray for backgrounds).
+Use responsive classes (e.g., sm:, md:, lg:) for mobile-first design.
+Style forms with a clean, modern look (e.g., shadowed inputs, rounded buttons).
+Use a grid layout for product listings (e.g., grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3).
+
+Additional Features
+
+Search and Filter: Implement a search bar on the buyer dashboard to filter products by category (e.g., female, male, kids).
+Pagination: Add pagination for product listings and order history if the API supports it.
+Loading States: Show LoadingSpinner during API calls.
+Logout: Clear localStorage and redirect to the login page.
+Role-Based Redirects: After login, redirect buyers to /buyer/dashboard and vendors to /vendor/dashboard.
+
+Deliverables
+
+Full Source Code: Provide all files in the specified project structure.
+README.md: Include instructions for setting up and running the app:
+Install Node.js and npm.
+Run npm create vite@latest to initialize the project.
+Install dependencies: react-router-dom, axios, react-hook-form, react-toastify.
+Start the development server: npm run dev.
+Note that the backend must be running on http://localhost:5000.
+
+
+Sample Data Handling:
+use route given above base route is http://localhost:5000 and it can extend wrt endpoints
+Ensure the app handles empty states (e.g., "No products found", "Cart is empty").
+
+
+
+Notes
+
+The provided Register component should be adapted to use Tailwind CSS and react-hook-form.
+Assume the API returns JSON responses with a consistent structure (e.g., { success: true, data: {...} } for success, { success: false, message: "Error" } for errors).
+If any endpoint lacks a response schema, infer reasonable data structures (e.g., products have id, name, price, category, imageUrl).
+Ensure the app is secure by sanitizing inputs and avoiding direct DOM manipulation.
+Test the app with the provided JWT token for buyer routes and mock a similar token for vendor routes.
+
+Example Component (Adapted Register.jsx)
+Below is an example of how the provided Register component should be adapted:
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { registerUser } from '../services/api';
+
+const Register = () => {
+  const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const navigate = useNavigate();
+  const role = watch('role');
+
+  const onSubmit = async (data) => {
+    try {
+      await registerUser(data);
+      toast.success('Registration successful!');
+      navigate('/login');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Registration failed');
+    }
+  };
+
+  return (
+    <div className="flex justify-center mt-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md bg-gray-100 p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
+
+        <div className="mb-4">
+          <label htmlFor="fullName" className="block text-sm font-medium">Full Name</label>
+          <input
+            id="fullName"
+            type="text"
+            className="w-full p-2 border rounded"
+            {...register('fullName', { required: 'Full Name is required' })}
+          />
+          {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-sm font-medium">Email</label>
+          <input
+            id="email"
+            type="email"
+            className="w-full p-2 border rounded"
+            {...register('email', { required: 'Email is required', pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' } })}
+          />
+          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="password" className="block text-sm font-medium">Password</label>
+          <input
+            id="password"
+            type="password"
+            className="w-full p-2 border rounded"
+            {...register('password', { required: 'Password is required', minLength: { value: 8, message: 'Password must be at least 8 characters' } })}
+          />
+          {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="role" className="block text-sm font-medium">Role</label>
+          <select
+            id="role"
+            className="w-full p-2 border rounded"
+            {...register('role', { required: 'Role is required' })}
+          >
+            <option value="" disabled>Select role</option>
+            <option value="buyer">Buyer</option>
+            <option value="vendor">Vendor</option>
+          </select>
+          {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
+        </div>
+
+        {role === 'buyer' && (
+          <div className="mb-4">
+            <label htmlFor="preferences" className="block text-sm font-medium">Preferences</label>
+            <input
+              id="preferences"
+              type="text"
+              className="w-full p-2 border rounded"
+              placeholder="E.g. male, female, kids"
+              {...register('preferences')}
+            />
+          </div>
+        )}
+
+        {role === 'vendor' && (
+          <div className="mb-4">
+            <label htmlFor="vendorName" className="block text-sm font-medium">Vendor Name</label>
+            <input
+              id="vendorName"
+              type="text"
+              className="w-full p-2 border rounded"
+              placeholder="Enter your store name"
+              {...register('vendorName')}
+            />
+          </div>
+        )}
+
+        <div className="mb-4">
+          <label htmlFor="addressLine1" className="block text-sm font-medium">Address</label>
+          <input
+            id="addressLine1"
+            type="text"
+            className="w-full p-2 border rounded"
+            {...register('addressLine1', { required: 'Address is required' })}
+          />
+          {errors.addressLine1 && <p className="text-red-500 text-sm">{errors.addressLine1.message}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="city" className="block text-sm font-medium">City</label>
+          <input
+            id="city"
+            type="text"
+            className="w-full p-2 border rounded"
+            {...register('city', { required: 'City is required' })}
+          />
+          {errors.city && <p className="text-red-500 text-sm">{errors.city.message}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="postalCode" className="block text-sm font-medium">Postal Code</label>
+          <input
+            id="postalCode"
+            type="text"
+            className="w-full p-2 border rounded"
+            {...register('postalCode', { required: 'Postal Code is required' })}
+          />
+          {errors.postalCode && <p className="text-red-500 text-sm">{errors.postalCode.message}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="country" className="block text-sm font-medium">Country</label>
+          <input
+            id="country"
+            type="text"
+            className="w-full p-2 border rounded"
+            {...register('country', { required: 'Country is required' })}
+          />
+          {errors.country && <p className="text-red-500 text-sm">{errors.country.message}</p>}
+        </div>
+
+        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+          Register
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default Register;
+
+This prompt provides a comprehensive blueprint for building a React-based e-commerce frontend that fully integrates with your API. If you need the actual implementation (e.g., specific files like App.jsx, api.js, etc.), please let me know, and I can generate those as well!

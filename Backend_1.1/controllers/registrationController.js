@@ -77,6 +77,7 @@ exports.login = async (req, res) => {
       vendorId,
       token
     });
+    
   } catch (error) {
     const status = error.message && error.message.toLowerCase().includes('invalid') ? 401 : 500;
     res.status(status).json({ message: error.message });

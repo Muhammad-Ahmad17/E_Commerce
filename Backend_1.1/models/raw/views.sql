@@ -68,6 +68,7 @@ SELECT
     c.categoryName,
     pi.imageUrl,
     v.vendorName,
+    p.stockQuantity,
     -- Average rating and review count
     ISNULL(AVG(CAST(pr.rating AS FLOAT)), 0) AS averageRating,
     COUNT(pr.reviewId) AS reviewCount,

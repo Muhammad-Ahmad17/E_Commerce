@@ -8,7 +8,7 @@ class Cart {
     try {
       const pool = await connectDB();
       const query = `
-           SELECT buyerId, cartId, productId, productName, unitPrice, quantity, totalPrice, availabilityStatus
+           SELECT buyerId, cartId, productId, productName, unitPrice, quantity,imageUrl, totalPrice, availabilityStatus
            FROM BuyerCartView
            WHERE buyerId = @buyerId
           `;

@@ -8,11 +8,13 @@ class Buyer {
       console.log('Buyer ID:', buyerId); // Debugging line to check the buyerId
       const query = `
         SELECT 
+          productId,
           productName,
           price,
           categoryName,
           description,
-          vendorName
+          vendorName,
+          imageUrl
         FROM BuyerCategoryProducts
         WHERE buyerId = @buyerId
       `;
@@ -36,7 +38,10 @@ class Buyer {
           productName,
           price,
           categoryName,
-          vendorName
+          vendorName,
+          description,
+          imageUrl
+          
         FROM BuyerCategoryProducts
         WHERE categoryName = @category
       `;
@@ -63,7 +68,8 @@ class Buyer {
           vendorName,
           imageUrl,
           averageRating,
-          reviewCount
+          reviewCount,
+          stockQuantity        
         FROM ProductDetails
         WHERE productId = @productId
       `;
