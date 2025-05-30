@@ -64,3 +64,13 @@ exports.getAnalytics = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+exports.markOrderAsDelivered = async (req, res) => {    
+  try {
+    const { orderId } = req.body;
+    const result = await Vendor.markOrderAsDelivered(orderId);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

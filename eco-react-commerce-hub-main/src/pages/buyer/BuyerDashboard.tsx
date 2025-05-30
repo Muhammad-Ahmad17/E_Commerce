@@ -67,7 +67,7 @@ const mappedProducts = (response.data || []).map((item: any, idx: number) => ({
     try {
       const response = await getProductsByCategory(category);
       console.log('Products by Category API response:', response);
-
+      console.log('Category:', category);
       // Map API response to Product type expected by ProductCard
       const mappedProducts = (response.data || []).map((item: any, idx: number) => ({
         id: item.productId?.toString() || idx.toString(), // Use productId from API

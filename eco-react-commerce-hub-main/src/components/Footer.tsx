@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">EShopify</h3>
+            <h3 className="text-lg font-semibold mb-4">EShop</h3>
             <p className="text-gray-600">
               Your one-stop shop for all your clothing needs. Quality products at affordable prices.
             </p>
@@ -50,17 +50,17 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <address className="text-gray-600 not-italic">
-              <p>123 Fashion Street</p>
-              <p>Style City, SC 12345</p>
-              <p className="mt-3">Email: contact@eshopify.com</p>
-              <p>Phone: (123) 456-7890</p>
+              <p>COMSATS University Islamabad</p>
+              <p>FA23-BCE(B)</p>
+              <p className="mt-3">Email: fa23-bce-113@cuilahore.edu.pk</p>
+              <p>Phone: +92-3371479474</p>
             </address>
           </div>
         </div>
         
         <div className="border-t border-gray-200 mt-8 pt-6">
           <p className="text-center text-gray-600 text-sm">
-            &copy; {new Date().getFullYear()} EShopify. All rights reserved.
+            &copy; {new Date().getFullYear()} EShop. All rights reserved.
           </p>
         </div>
       </div>

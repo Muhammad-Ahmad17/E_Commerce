@@ -258,68 +258,102 @@ GO
 */
 CREATE OR ALTER VIEW VendorPendingOrdersView
 AS
-SELECT 
-    v.vendorId,
-    v.vendorName,
-    o.orderId,
-    u.fullName AS buyerName,
-    p.productName,
-    oi.quantity,
-    oi.unitPrice,
-    (oi.quantity * oi.unitPrice) AS totalPrice,
-    o.orderDate,
-    o.expectedDeliveryDate,
-    CONCAT(a.addressLine1, ', ', a.city, ', ', a.postalCode, ', ', a.country) AS shippingAddress,
-    CASE
-        WHEN GETDATE() > o.expectedDeliveryDate THEN 'Delayed'
-        ELSE 'On Time'
-    END AS deliveryStatus,
-    CASE
-        WHEN GETDATE() > o.expectedDeliveryDate THEN 'warning'
-        ELSE 'success'
-    END AS deliveryIndicator
+SELECT
+  v.vendorId,
+  v.vendorName,
+  CAST(o.orderId AS VARCHAR) AS id,
+  o.orderDate,
+  u.fullName AS buyerName,
+  o.status,
+  SUM(oi.quantity * oi.unitPrice) AS total,
+  (
+    SELECT
+      CAST(oi2.orderItemId AS VARCHAR) AS id,
+      p2.productName AS name,
+      oi2.quantity,
+      oi2.unitPrice AS price
+    FROM OrderItem oi2
+    JOIN Product p2 ON oi2.productId = p2.productId
+    WHERE oi2.orderId = o.orderId
+    FOR JSON PATH
+  ) AS items,
+  (
+    SELECT
+      a.addressLine1,
+      a.city,
+      a.postalCode,
+      a.country
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+  ) AS shippingAddress
 FROM ShopOrder o
 JOIN OrderItem oi ON o.orderId = oi.orderId
 JOIN Product p ON oi.productId = p.productId
 JOIN Vendor v ON p.vendorId = v.vendorId
 JOIN [User] u ON o.userId = u.userId
 JOIN Address a ON o.shippingAddressId = a.addressId
-WHERE o.status = 'Pending' AND p.isActive = 1;
+WHERE p.isActive = 1 -- remove status == pending so that all product display on front
+GROUP BY v.vendorId, v.vendorName, o.orderId, o.orderDate, u.fullName, o.status, a.addressLine1, a.city, a.postalCode, a.country
 GO
-
+SELECT TOP 10 * FROM VendorPendingOrdersView;
 /*
 * View: VendorAnalyticsView
 * Purpose: Provides analytical data for vendor performance
 * Used By: Vendor analytics, Sales reports
 * Dependencies: User, Vendor, Product, OrderItem, ShopOrder, ProductReview
 */
-CREATE OR ALTER VIEW VendorAnalyticsView
-AS
-SELECT 
-    u.userId,
-    v.vendorId,
-    v.vendorName AS storeName,
-    p.productId,
-    p.productName,
-    COUNT(oi.orderItemId) AS totalOrders,
-    SUM(oi.quantity) AS totalUnitsSold,
-    SUM(oi.quantity * oi.unitPrice) AS totalRevenue,
-    ISNULL(AVG(CAST(pr.rating AS FLOAT)), 0) AS averageRating,
-    SUM(CASE WHEN o.status = 'Pending' THEN 1 ELSE 0 END) AS pendingOrders,
-    SUM(CASE WHEN o.status = 'Delivered' THEN 1 ELSE 0 END) AS deliveredOrders,
-    SUM(CASE WHEN o.status = 'Rejected' THEN 1 ELSE 0 END) AS rejectedOrders,
-    CASE 
-        WHEN AVG(CAST(pr.rating AS FLOAT)) >= 4 THEN 'Excellent'
-        WHEN AVG(CAST(pr.rating AS FLOAT)) >= 3 THEN 'Good'
-        WHEN AVG(CAST(pr.rating AS FLOAT)) > 0 THEN 'Poor'
-        ELSE 'No Ratings'
-    END AS ratingStatus
-FROM [User] u
-JOIN Vendor v ON u.userId = v.userId
-JOIN Product p ON v.vendorId = p.vendorId
+
+CREATE OR ALTER VIEW VendorAnalyticsView AS
+SELECT
+  v.vendorId,
+  SUM(CASE WHEN o.status = 'Delivered' THEN oi.quantity * oi.unitPrice ELSE 0 END) AS totalSales,
+  COUNT(DISTINCT o.orderId) AS totalOrders,
+  (SELECT COUNT(*) FROM Product p2 WHERE p2.vendorId = v.vendorId AND p2.isActive = 1) AS totalProducts,
+  -- Sales by Category as JSON
+  (
+    SELECT
+      c.categoryName AS category,
+      SUM(oi2.quantity * oi2.unitPrice) AS sales
+    FROM OrderItem oi2
+    JOIN Product p2 ON oi2.productId = p2.productId
+    JOIN Category c ON p2.categoryId = c.categoryId
+    JOIN ShopOrder o2 ON oi2.orderId = o2.orderId
+    WHERE p2.vendorId = v.vendorId AND o2.status = 'Delivered'
+    GROUP BY c.categoryName
+    FOR JSON PATH
+  ) AS salesByCategory,
+  -- Recent Sales as JSON (last 7 days)
+  (
+    SELECT
+      CONVERT(varchar(10), o2.orderDate, 120) AS date,
+      SUM(oi2.quantity * oi2.unitPrice) AS amount
+    FROM OrderItem oi2
+    JOIN Product p2 ON oi2.productId = p2.productId
+    JOIN ShopOrder o2 ON oi2.orderId = o2.orderId
+    WHERE p2.vendorId = v.vendorId AND o2.status = 'Delivered'
+      AND o2.orderDate >= DATEADD(day, -7, GETDATE())
+    GROUP BY CONVERT(varchar(10), o2.orderDate, 120)
+    FOR JSON PATH
+  ) AS recentSales
+FROM Vendor v
+LEFT JOIN Product p ON v.vendorId = p.vendorId
 LEFT JOIN OrderItem oi ON p.productId = oi.productId
 LEFT JOIN ShopOrder o ON oi.orderId = o.orderId
-LEFT JOIN ProductReview pr ON p.productId = pr.productId
-WHERE u.isActive = 1
-GROUP BY u.userId, v.vendorId,v.vendorName, p.productId, p.productName;
+WHERE v.vendorId IS NOT NULL
+GROUP BY v.vendorId
+GO
+
+/*
+* Procedure: MarkOrderAsDelivered
+* Purpose: Manually mark an order as delivered
+* Usage: EXEC MarkOrderAsDelivered @orderId = 123
+*/
+GO
+CREATE OR ALTER PROCEDURE MarkOrderAsDelivered
+  @orderId INT
+AS
+BEGIN
+  UPDATE ShopOrder
+  SET status = 'Delivered'
+  WHERE orderId = @orderId AND status <> 'Delivered';
+END
 GO

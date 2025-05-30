@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { getVendorOrders } from '@/services/api';
+import { getVendorOrders, markOrderAsDelivered } from '@/services/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorMessage from '@/components/ErrorMessage';
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,22 @@ const OrderManagement: React.FC = () => {
     const fetchOrders = async () => {
       try {
         const response = await getVendorOrders();
-        setOrders(response.data.data || []);
+        console.log("fetch orders", response.data);
+
+        // Map API response to Order type expected by frontend
+        const mappedOrders = (response.data || []).map((item: any) => ({
+          id: item.id,
+          orderDate: item.orderDate,
+          buyerName: item.buyerName,
+          buyerEmail: item.buyerEmail, // if available from backend
+          status: item.status,
+          total: item.total,
+          items: typeof item.items === 'string' ? JSON.parse(item.items) : item.items,
+          shippingAddress: typeof item.shippingAddress === 'string' ? JSON.parse(item.shippingAddress) : item.shippingAddress,
+          vendorId: item.vendorId,
+          vendorName: item.vendorName,
+        }));
+        setOrders(mappedOrders);
         setError(null);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to fetch orders');
@@ -64,6 +78,25 @@ const OrderManagement: React.FC = () => {
       title: 'Order status updated',
       description: `Order #${orderId} status changed to ${newStatus}`,
     });
+  };
+  
+  const handleAutoDeliver = async (orderId: string) => {
+    try {
+      await markOrderAsDelivered(orderId);
+      setOrders(orders.map(order =>
+        order.id === orderId ? { ...order, status: 'Delivered' } : order
+      ));
+      toast({
+        title: 'Order delivered',
+        description: `Order #${orderId} marked as delivered.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Auto delivery failed',
+        description: err.response?.data?.message || 'Failed to mark order as delivered',
+        variant: 'destructive',
+      });
+    }
   };
   
   if (loading) {
@@ -188,6 +221,9 @@ const OrderManagement: React.FC = () => {
                       </Button>
                     )}
                     <Button variant="outline">Print Invoice</Button>
+                    <Button variant="outline" onClick={() => handleAutoDeliver(order.id)}>
+                      Auto Deliver
+                    </Button>
                     <Button variant="destructive">Cancel Order</Button>
                   </div>
                 </div>

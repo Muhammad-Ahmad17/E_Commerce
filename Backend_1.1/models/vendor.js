@@ -136,6 +136,19 @@ class Vendor {
       throw new Error(`Failed to fetch vendor analytics: ${error.message}`);
     }
   }
+// Mark order as delivered
+static async markOrderAsDelivered(orderId) {
+  console.log('Marking order as delivered for orderId:', orderId);
+  try {
+    const pool = await connectDB();
+    const result = await pool.request()
+      .input('orderId', sql.Int, orderId)
+      .execute('MarkOrderAsDelivered');
+      return result.recordset[0];
+    } catch (error) {
+      throw new Error(`Failed to mark order as delivered: ${error.message}`);
+    }
+  }
 }
 
 module.exports = Vendor;

@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { getVendorProducts, addVendorProduct, updateVendorProduct, deleteVendorProduct } from '@/services/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorMessage from '@/components/ErrorMessage';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from '@/components/ui/use-toast';
 import { Edit, Trash2, Plus } from 'lucide-react';
 
@@ -15,6 +14,7 @@ type Product = {
   description: string;
   price: number;
   category: string;
+  subCategoryName: string;
   stock: number;
   imageUrl?: string;
 };
@@ -26,6 +26,7 @@ const initialFormData: ProductFormData = {
   description: '',
   price: 0,
   category: '',
+  subCategoryName: '',
   stock: 0,
   imageUrl: '',
 };
@@ -50,7 +51,17 @@ const ProductManagement: React.FC = () => {
     setLoading(true);
     try {
       const response = await getVendorProducts();
-      setProducts(response.data.data || []);
+      const mappedProducts = (response.data || []).map((item: any, idx: number) => ({
+        id: item.productId?.toString() || idx.toString(),
+        name: item.productName,
+        description: item.description,
+        price: item.price,
+        category: item.categoryName,
+        subCategoryName: item.subCategoryName || '',
+        stock: item.stockQuantity,
+        imageUrl: item.imageUrl,
+      }));
+      setProducts(mappedProducts);
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch products');
@@ -71,6 +82,7 @@ const ProductManagement: React.FC = () => {
     setValue('description', product.description);
     setValue('price', product.price);
     setValue('category', product.category);
+    setValue('subCategoryName', product.subCategoryName);
     setValue('stock', product.stock);
     setValue('imageUrl', product.imageUrl || '');
     setIsDialogOpen(true);
@@ -100,10 +112,18 @@ const ProductManagement: React.FC = () => {
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
     try {
+      const backendPayload = {
+        productName: data.name,
+        categoryName: data.category,
+        subCategoryName: data.subCategoryName,
+        description: data.description,
+        price: data.price,
+        stockQuantity: data.stock,
+        imageUrl: data.imageUrl,
+      };
       if (editingProduct) {
-        // Update existing product
-        await updateVendorProduct(editingProduct.id, data);
-        setProducts(products.map(p => 
+        await updateVendorProduct(editingProduct.id, backendPayload);
+        setProducts(products.map(p =>
           p.id === editingProduct.id ? { ...p, ...data } : p
         ));
         toast({
@@ -111,8 +131,7 @@ const ProductManagement: React.FC = () => {
           description: 'Your product has been updated successfully.',
         });
       } else {
-        // Add new product
-        const response = await addVendorProduct(data);
+        const response = await addVendorProduct(backendPayload);
         setProducts([...products, { id: response.data.data.id, ...data }]);
         toast({
           title: 'Product added',
@@ -130,6 +149,8 @@ const ProductManagement: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+  
+  console.log("isDialogOpen:", isDialogOpen);
   
   if (loading && !products.length) {
     return (
@@ -229,133 +250,142 @@ const ProductManagement: React.FC = () => {
       
       {/* Product Form Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
-            <h2 className="text-xl font-semibold mb-4">
-              {editingProduct ? 'Edit Product' : 'Add New Product'}
-            </h2>
-            
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <DialogContent>
+          <h2 className="text-xl font-semibold mb-4">
+            {editingProduct ? 'Edit Product' : 'Add New Product'}
+          </h2>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Product Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
+                {...register('name', { required: 'Product name is required' })}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                rows={3}
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
+                {...register('description', { required: 'Description is required' })}
+              ></textarea>
+              {errors.description && (
+                <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name
+                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                  Price ($)
                 </label>
                 <input
-                  id="name"
-                  type="text"
+                  id="price"
+                  type="number"
+                  step="0.01"
                   className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
-                  {...register('name', { required: 'Product name is required' })}
+                  {...register('price', {
+                    required: 'Price is required',
+                    min: { value: 0.01, message: 'Price must be greater than 0' }
+                  })}
                 />
-                {errors.name && (
-                  <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                {errors.price && (
+                  <p className="text-red-500 text-xs mt-1">{errors.price.message}</p>
                 )}
               </div>
-              
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
-                  {...register('description', { required: 'Description is required' })}
-                ></textarea>
-                {errors.description && (
-                  <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                    Price ($)
-                  </label>
-                  <input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
-                    {...register('price', { 
-                      required: 'Price is required',
-                      min: { value: 0.01, message: 'Price must be greater than 0' }
-                    })}
-                  />
-                  {errors.price && (
-                    <p className="text-red-500 text-xs mt-1">{errors.price.message}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock
-                  </label>
-                  <input
-                    id="stock"
-                    type="number"
-                    className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
-                    {...register('stock', { 
-                      required: 'Stock is required',
-                      min: { value: 0, message: 'Stock cannot be negative' }
-                    })}
-                  />
-                  {errors.stock && (
-                    <p className="text-red-500 text-xs mt-1">{errors.stock.message}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
-                </label>
-                <select
-                  id="category"
-                  className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
-                  {...register('category', { required: 'Category is required' })}
-                >
-                  <option value="">Select category</option>
-                  <option value="male">Men's</option>
-                  <option value="female">Women's</option>
-                  <option value="children">Kids'</option>
-                </select>
-                {errors.category && (
-                  <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
-                )}
-              </div>
-              
-              <div>
-                <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL (optional)
+                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock
                 </label>
                 <input
-                  id="imageUrl"
-                  type="text"
+                  id="stock"
+                  type="number"
                   className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
-                  placeholder="https://example.com/image.jpg"
-                  {...register('imageUrl')}
+                  {...register('stock', {
+                    required: 'Stock is required',
+                    min: { value: 0, message: 'Stock cannot be negative' }
+                  })}
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave empty to use a placeholder image
-                </p>
+                {errors.stock && (
+                  <p className="text-red-500 text-xs mt-1">{errors.stock.message}</p>
+                )}
               </div>
-              
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? <LoadingSpinner size="small" /> : 
-                    editingProduct ? 'Update Product' : 'Add Product'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
+            </div>
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                Category
+              </label>
+              <select
+                id="category"
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
+                {...register('category', { required: 'Category is required' })}
+              >
+                <option value="">Select category</option>
+                <option value="male">Men's</option>
+                <option value="female">Women's</option>
+                <option value="children">Kids'</option>
+              </select>
+              {errors.category && (
+                <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="subCategoryName" className="block text-sm font-medium text-gray-700 mb-1">
+                Subcategory
+              </label>
+              <select
+                id="subCategoryName"
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
+                {...register('subCategoryName', { required: 'Subcategory is required' })}
+              >
+                <option value="">Select subcategory</option>
+                <option value="clothes">Clothes</option>
+                <option value="shoes">Shoes</option>
+                {/* Add all valid subcategories here */}
+              </select>
+              {errors.subCategoryName && (
+                <p className="text-red-500 text-xs mt-1">{errors.subCategoryName.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                Image URL (optional)
+              </label>
+              <input
+                id="imageUrl"
+                type="text"
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
+                placeholder="https://example.com/image.jpg"
+                {...register('imageUrl')}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Leave empty to use a placeholder image
+              </p>
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? <LoadingSpinner size="small" /> :
+                  editingProduct ? 'Update Product' : 'Add Product'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
       </Dialog>
     </div>
   );

@@ -8,15 +8,16 @@ dotenv.config();
 connection configuration for SQL Server
 using environment variables for security
 */
+
 const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   server: process.env.DB_SERVER,
   database: process.env.DB_NAME,
   options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  },
+    encrypt: true,                 // Required by Azure
+    trustServerCertificate: false // Set to false for production
+  }
 };
 
 /*

@@ -349,6 +349,7 @@ BEGIN
 END;
 GO
 
+SELECT * from productReview
 
 /*
 * Procedure: AddVendorProcedure
@@ -558,4 +559,24 @@ BEGIN
         THROW;
     END CATCH;
 END;
+GO
+
+/*
+* Procedure: MarkOrderAsDelivered
+* Purpose: Manually mark an order as delivered
+* Usage: EXEC MarkOrderAsDelivered @orderId = 123
+*/
+
+CREATE OR ALTER PROCEDURE MarkOrderAsDelivered
+  @orderId INT
+AS
+BEGIN
+  UPDATE ShopOrder
+  SET status = 'Delivered',
+      deliveredDate = GETDATE()
+  WHERE orderId = @orderId AND status <> 'Delivered';
+
+  -- Return the updated row
+  SELECT * FROM ShopOrder WHERE orderId = @orderId;
+END
 GO

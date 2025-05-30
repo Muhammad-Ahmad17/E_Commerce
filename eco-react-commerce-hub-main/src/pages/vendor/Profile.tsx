@@ -34,8 +34,32 @@ const Profile: React.FC = () => {
     const fetchProfile = async () => {
       try {
         const response = await getVendorProfile();
-        setProfile(response.data.data);
-        reset(response.data.data);
+        console.log("profile data :" , response.data);
+        const data = response.data;
+        // Split address into parts (very basic split, adjust as needed)
+        const [addressLine1 = '', city = '', postalCode = '', country = ''] =
+          (data.address || '').split(',').map(s => s.trim());
+
+        // Map API response to your form and profile state
+        const mappedProfile = {
+          id: '', // If you have an id, set it here
+          fullName: data.fullName || '',
+          email: data.emailAddress || '',
+          vendorName: data.vendorName || '',
+          addressLine1,
+          city,
+          postalCode,
+          country,
+        }
+        setProfile(mappedProfile);
+        reset({
+          fullName: mappedProfile.fullName,
+          vendorName: mappedProfile.vendorName,
+          addressLine1: mappedProfile.addressLine1,
+          city: mappedProfile.city,
+          postalCode: mappedProfile.postalCode,
+          country: mappedProfile.country,
+        });  
         setError(null);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to fetch profile data');

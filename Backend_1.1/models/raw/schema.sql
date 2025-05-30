@@ -131,6 +131,10 @@ CREATE TABLE ShopOrder (
     FOREIGN KEY (userId) REFERENCES [User](userId) ON DELETE CASCADE,
     FOREIGN KEY (shippingAddressId) REFERENCES Address(addressId) ON DELETE NO ACTION
 );
+--
+ALTER TABLE ShopOrder
+ADD deliveredDate DATETIME NULL;
+--
 
 CREATE TABLE OrderItem (
     orderItemId INT PRIMARY KEY IDENTITY,

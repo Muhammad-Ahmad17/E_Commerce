@@ -76,7 +76,7 @@ END;
 GO
 
 -- 4. User Role Assignment Trigger
-DROP TRIGGER IF EXISTS AssignUserRoleTrigger;
+--DROP TRIGGER IF EXISTS AssignUserRoleTrigger;
 CREATE OR ALTER TRIGGER AssignUserRoleTrigger
 ON [User]
 AFTER INSERT
@@ -113,6 +113,8 @@ GO
 * Purpose: Automatically marks orders as delivered after creation
 * Dependencies: ShopOrder
 */
+-- deleted and inserted it as a procedure
+--DROP TRIGGER IF EXISTS AutoDeliveryTrigger;
 CREATE OR ALTER TRIGGER AutoDeliveryTrigger
 ON ShopOrder
 AFTER INSERT
@@ -121,7 +123,7 @@ BEGIN
     SET NOCOUNT ON;
     
     -- Wait for 3 seconds (simulating 3 days delivery time)
-    WAITFOR DELAY '00:00:03';
+    WAITFOR DELAY '00:00:01';
     
     -- Update to Delivered status
     UPDATE ShopOrder

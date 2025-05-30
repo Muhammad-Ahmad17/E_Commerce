@@ -16,6 +16,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // API Routes
 app.use('/api/registration', registrationRoutes);
 app.use('/api/buyer', buyerRoutes);

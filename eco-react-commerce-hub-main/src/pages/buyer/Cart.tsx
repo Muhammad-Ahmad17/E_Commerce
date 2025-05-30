@@ -18,7 +18,7 @@ const Cart: React.FC = () => {
         title: 'Order placed successfully!',
         description: 'Thank you for your purchase.',
       });
-      updateCart(); // Refresh cart after checkout
+      await updateCart(); // Refresh cart after checkout
     } catch (err: any) {
       toast({
         title: 'Checkout failed',

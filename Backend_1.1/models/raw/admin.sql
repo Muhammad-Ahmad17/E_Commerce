@@ -227,3 +227,13 @@ GO
 
 -- drop DeleteFromCartByProduct
 DROP PROCEDURE IF EXISTS DeleteFromCartByProduct
+
+
+
+-- backup the database
+BACKUP DATABASE ecom
+TO DISK = 'E:\ecom.bak'
+
+-- restore the database
+RESTORE DATABASE ecom
+FROM DISK = 'E:\ecom.bak'

@@ -10,5 +10,6 @@ router.put('/updateProduct', authenticateJWT, vendorController.updateProduct);
 router.delete('/deleteProduct', authenticateJWT, vendorController.deleteProduct);
 router.get('/pendingOrders', authenticateJWT, vendorController.getPendingOrders);
 router.get('/analytics', authenticateJWT, vendorController.getAnalytics);
+router.put('/markOrderAsDelivered', authenticateJWT, vendorController.markOrderAsDelivered);
 
 module.exports = router;

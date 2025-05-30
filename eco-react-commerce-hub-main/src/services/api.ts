@@ -110,21 +110,26 @@ export const getVendorProducts = () => {
 };
 
 export const addVendorProduct = (productData: any) => {
-  return api.post('/api/vendors/products', productData);
+  return api.post('/api/vendors/addProduct', productData); // <-- FIXED
 };
 
-export const updateVendorProduct = (id: string, productData: any) => {
-  return api.put(`/api/vendors/products/${id}`, productData);
+export const updateVendorProduct = (productId: string, productData: any) => {
+  return api.put('/api/vendors/updateProduct', { productId, ...productData }); // <-- FIXED
 };
 
-export const deleteVendorProduct = (id: string) => {
-  return api.delete(`/api/vendors/products/${id}`);
+export const deleteVendorProduct = (productId: string) => {
+  return api.delete('/api/vendors/deleteProduct', { data: { productId } }); // <-- FIXED
 };
 
 export const getVendorOrders = () => {
-  return api.get('/api/vendors/orders');
+  return api.get('/api/vendors/pendingOrders');
 };
 
 export const getVendorAnalytics = () => {
   return api.get('/api/vendors/analytics');
 };
+
+export const markOrderAsDelivered = (orderId: string) => {
+  return api.put('/api/vendors/markOrderAsDelivered', { orderId });
+};
+

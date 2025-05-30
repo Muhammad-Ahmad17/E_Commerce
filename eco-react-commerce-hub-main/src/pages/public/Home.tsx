@@ -44,7 +44,7 @@ const Home: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 md:pr-10">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                Find Your Perfect Style with EShopify
+                Find Your Perfect Style with EShop
               </h1>
               <p className="mt-4 text-xl text-gray-700">
                 Discover trendy clothing for men, women, and kids. Quality fashion at affordable prices.
@@ -60,7 +60,7 @@ const Home: React.FC = () => {
             </div>
             <div className="md:w-1/2 mt-10 md:mt-0">
               <img 
-                src="https://placehold.co/600x400?text=Fashion+Collection" 
+                src="https://videos.openai.com/vg-assets/assets%2Ftask_01jw80eepsf7e82f9bsyk33jsv%2F1748320657_img_2.webp?st=2025-05-27T03%3A20%3A06Z&se=2025-06-02T04%3A20%3A06Z&sks=b&skt=2025-05-27T03%3A20%3A06Z&ske=2025-06-02T04%3A20%3A06Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=f4Uz%2FNRJOMXcWc5prsZSlZc7tx22oeEtozBLyBb2oYc%3D&az=oaivgprodscus" 
                 alt="Fashion Collection" 
                 className="rounded-lg shadow-lg w-full" 
               />
@@ -118,7 +118,7 @@ const Home: React.FC = () => {
             <Link to="/buyer/dashboard?category=female" className="group">
               <div className="relative overflow-hidden rounded-lg h-80">
                 <img 
-                  src="https://placehold.co/600x800?text=Women's+Fashion" 
+                  src="https://videos.openai.com/vg-assets/assets%2Ftask_01jw7xtfg0fvwrh260n7f2v7hk%2F1748317891_img_1.webp?st=2025-05-27T02%3A24%3A57Z&se=2025-06-02T03%3A24%3A57Z&sks=b&skt=2025-05-27T02%3A24%3A57Z&ske=2025-06-02T03%3A24%3A57Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=xKWGlOF4Kmm58%2FUQZHKgEoT%2FqYCI0xZcbk1xlbnQjqY%3D&az=oaivgprodscus" 
                   alt="Women's Fashion"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -131,7 +131,7 @@ const Home: React.FC = () => {
             <Link to="/buyer/dashboard?category=male" className="group">
               <div className="relative overflow-hidden rounded-lg h-80">
                 <img 
-                  src="https://placehold.co/600x800?text=Men's+Fashion" 
+                  src="https://videos.openai.com/vg-assets/assets%2Ftask_01jw760gdkeb4a0xd285gfrkjq%2F1748292924_img_1.webp?st=2025-05-27T02%3A23%3A51Z&se=2025-06-02T03%3A23%3A51Z&sks=b&skt=2025-05-27T02%3A23%3A51Z&ske=2025-06-02T03%3A23%3A51Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=2o%2BjN05R0lL4SQsxRE6AWjmUZy38A27DOEhISN8hoq0%3D&az=oaivgprodscus" 
                   alt="Men's Fashion"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
             <Link to="/buyer/dashboard?category=children" className="group">
               <div className="relative overflow-hidden rounded-lg h-80">
                 <img 
-                  src="https://placehold.co/600x800?text=Kids'+Fashion" 
+                  src="https://videos.openai.com/vg-assets/assets%2Ftask_01jw7xz4kne8zv5tem1e01z8h2%2F1748318043_img_1.webp?st=2025-05-27T02%3A24%3A57Z&se=2025-06-02T03%3A24%3A57Z&sks=b&skt=2025-05-27T02%3A24%3A57Z&ske=2025-06-02T03%3A24%3A57Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=fyeufCbgQorNEqKrfQT1Wzukkt4dBO6eKgBNGp4Smwg%3D&az=oaivgprodscus" 
                   alt="Kids' Fashion"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
