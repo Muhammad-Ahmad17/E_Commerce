@@ -7,7 +7,7 @@ class Buyer {
       const pool = await connectDB();
       console.log('Buyer ID:', buyerId); // Debugging line to check the buyerId
       const query = `
-        SELECT 
+        SELECT DISTINCT
           productId,
           productName,
           price,
@@ -33,7 +33,7 @@ class Buyer {
     try {
       const pool = await connectDB();
       const query = `
-        SELECT 
+        SELECT DISTINCT
           productId,
           productName,
           price,
