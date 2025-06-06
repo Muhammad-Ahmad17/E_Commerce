@@ -17,6 +17,18 @@ GO
 * Dependencies: User, Role, Buyer, Category, Product, ProductImage, Vendor
 */
 
+SELECT  DISTINCT
+          productId,
+          productName,
+          price,
+          categoryName,
+          vendorName,
+          description,
+          imageUrl
+          
+        FROM BuyerCategoryProducts
+        WHERE categoryName like 'children'
+
 CREATE OR ALTER VIEW BuyerCategoryProducts--view
 AS
 SELECT 

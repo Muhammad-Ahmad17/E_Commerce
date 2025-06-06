@@ -33,7 +33,7 @@ class Buyer {
     try {
       const pool = await connectDB();
       const query = `
-        SELECT 
+        SELECT distinct
           productId,
           productName,
           price,

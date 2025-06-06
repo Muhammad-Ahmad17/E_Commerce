@@ -237,3 +237,14 @@ TO DISK = 'E:\ecom.bak'
 -- restore the database
 RESTORE DATABASE ecom
 FROM DISK = 'E:\ecom.bak'
+
+
+
+
+
+
+
+
+
+
+SELECT comment FROM ProductReview WHERE productId = 5

@@ -349,7 +349,7 @@ BEGIN
 END;
 GO
 
-SELECT * from productReview
+SELECT * from productReview;
 
 /*
 * Procedure: AddVendorProcedure
@@ -488,6 +488,28 @@ BEGIN
     END CATCH;
 END;
 GO
+-- add product for children category
+-- Declare mock input variables
+DECLARE @vendorId INT = 11;
+DECLARE @categoryName NVARCHAR(100) = 'children';
+DECLARE @subCategoryName NVARCHAR(100) = 'clothes';
+DECLARE @productName NVARCHAR(200) = 'pajama';
+DECLARE @description NVARCHAR(MAX) = 'Soft and comfortable pajama for kids, perfect for bedtime.';
+DECLARE @price DECIMAL(18, 2) = 1399.99;
+DECLARE @stockQuantity INT = 20;
+DECLARE @imageUrl NVARCHAR(MAX) = 'https://example.com/images/iphone14.jpg';
+
+-- Execute the stored procedure with mock data
+EXEC AddProductProcedure
+    @vendorId = @vendorId,
+    @categoryName = @categoryName,
+    @subCategoryName = @subCategoryName,
+    @productName = @productName,
+    @description = @description,
+    @price = @price,
+    @stockQuantity = @stockQuantity,
+    @imageUrl = @imageUrl;
+
 
 /*
 * Procedure: UpdateProductQuantityProcedure
