@@ -154,20 +154,33 @@ class Buyer {
       throw new Error(`Failed to fetch order history: ${error.message}`);
     }
   }
-  /*CREATE OR ALTER PROCEDURE AddReviewProcedure
-    @buyerId INT,
-    @productId INT,
-    @rating INT,
-    @comment NVARCHAR(500),
-    @reviewDate DATETIME = NULL */
-  static async  addReview(buyerId, productId, rating, comment) {
+
+
+  static async getReviews(productId) {
+    try {
+      const pool = await connectDB();
+      const query = `
+          select * from ProductReviews
+          where productId = @productId; 
+      `;
+      const result = await pool.request()
+        .input('productId', sql.Int, productId)
+        .query(query);
+      return result.recordset;
+    } catch (error) {
+      throw new Error(`Failed to fetch reviews: ${error.message}`);
+    }
+  }
+
+
+  static async addReview(buyerId, productId, rating, comment) {
     try {
       const pool = await connectDB();
       const result = await pool.request()
         .input('buyerId', sql.Int, buyerId)
         .input('productId', sql.Int, productId)
         .input('rating', sql.Int, rating)
-        .input('comment', sql.NVarChar, comment)
+        .input('comment', sql.NVarChar(500), comment)
         .execute('AddReviewProcedure');
       return result.recordset[0];
     } catch (error) {

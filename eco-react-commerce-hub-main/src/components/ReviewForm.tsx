@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -74,7 +73,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewAdded }) => 
           className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-brand focus:border-brand"
           placeholder="Share your thoughts about the product"
           {...register('comment', { required: 'Comment is required' })}
-        ></textarea>
+        />
         {errors.comment && (
           <p className="text-red-500 text-sm">{errors.comment.message}</p>
         )}

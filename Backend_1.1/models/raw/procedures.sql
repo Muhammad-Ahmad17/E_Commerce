@@ -602,3 +602,5 @@ BEGIN
   SELECT * FROM ShopOrder WHERE orderId = @orderId;
 END
 GO
+
+SELECT * FROM ShopOrder WHERE status = 'Delivered';

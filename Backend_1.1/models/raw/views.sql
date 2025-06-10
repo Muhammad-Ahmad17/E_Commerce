@@ -70,6 +70,7 @@ GO
 * Used By: Product detail pages, Search results
 * Dependencies: Product, Category, Vendor, ProductImage, ProductReview
 */
+SELECT * FROM productReview
 CREATE OR ALTER VIEW ProductDetails
 AS
 SELECT 
@@ -81,6 +82,7 @@ SELECT
     pi.imageUrl,
     v.vendorName,
     p.stockQuantity,
+    STRING_AGG(pr.comment, '; ') WITHIN GROUP (ORDER BY pr.reviewId) AS reviewComments,
     -- Average rating and review count
     ISNULL(AVG(CAST(pr.rating AS FLOAT)), 0) AS averageRating,
     COUNT(pr.reviewId) AS reviewCount,
@@ -106,6 +108,31 @@ WHERE p.isActive = 1
 GROUP BY 
     p.productId, p.productName, p.price, p.description, c.categoryName, pi.imageUrl, v.vendorName, p.stockQuantity
 GO
+SELECT * FROM ProductDetails wHERE productId = 43;
+
+/*
+View: productReview
+Purpose: Displays product reviews with ratings and comments
+Used By: Product detail pages, Search results
+Dependencies: Product, ProductReview
+*/
+CREATE OR ALTER VIEW ProductReviews
+AS
+SELECT 
+  pr.rating,
+  pr.comment,
+  p.productId,
+  pr.reviewDate
+FROM Product p
+INNER JOIN ProductReview pr ON p.productId = pr.productId;
+GO
+ 
+
+
+select * from ProductReviews
+where productId = 4;  
+
+
 /*
 * View: BuyerDashboardView
 * Purpose: Buyer's personalized dashboard information
@@ -342,7 +369,6 @@ SELECT
     JOIN Product p2 ON oi2.productId = p2.productId
     JOIN ShopOrder o2 ON oi2.orderId = o2.orderId
     WHERE p2.vendorId = v.vendorId AND o2.status = 'Delivered'
-      AND o2.orderDate >= DATEADD(day, -7, GETDATE())
     GROUP BY CONVERT(varchar(10), o2.orderDate, 120)
     FOR JSON PATH
   ) AS recentSales
@@ -352,20 +378,4 @@ LEFT JOIN OrderItem oi ON p.productId = oi.productId
 LEFT JOIN ShopOrder o ON oi.orderId = o.orderId
 WHERE v.vendorId IS NOT NULL
 GROUP BY v.vendorId
-GO
-
-/*
-* Procedure: MarkOrderAsDelivered
-* Purpose: Manually mark an order as delivered
-* Usage: EXEC MarkOrderAsDelivered @orderId = 123
-*/
-GO
-CREATE OR ALTER PROCEDURE MarkOrderAsDelivered
-  @orderId INT
-AS
-BEGIN
-  UPDATE ShopOrder
-  SET status = 'Delivered'
-  WHERE orderId = @orderId AND status <> 'Delivered';
-END
 GO
