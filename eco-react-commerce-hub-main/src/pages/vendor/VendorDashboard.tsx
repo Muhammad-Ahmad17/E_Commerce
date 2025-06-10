@@ -4,7 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorMessage from '@/components/ErrorMessage';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 type Analytics = {
   totalSales: number;
@@ -30,11 +30,32 @@ type Order = {
   items: OrderItem[];
 };
 
+const COLORS = ['#9b87f5', '#6ee7b7', '#fbbf24', '#f87171', '#60a5fa', '#f472b6', '#34d399', '#facc15'];
+
+// Helper to fill missing days in the month with amount: 0
+function fillMissingDays(sales: { date: string; amount: number }[], start: Date, end: Date) {
+  const filled: { date: string; amount: number }[] = [];
+  const salesMap = Object.fromEntries(sales.map(s => [s.date.slice(0, 10), s.amount]));
+  let current = new Date(start);
+  while (current <= end) {
+    const dateStr = current.toISOString().slice(0, 10);
+    filled.push({
+      date: dateStr,
+      amount: salesMap[dateStr] ?? 0,
+    });
+    current.setDate(current.getDate() + 1);
+  }
+  return filled;
+}
+
 const VendorDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Dynamic duration state
+  const [duration, setDuration] = useState<'7d' | '30d' | '90d'>('30d');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,6 +102,33 @@ const VendorDashboard: React.FC = () => {
     fetchData();
   }, []);
 
+  // Dynamic date range calculation
+  const today = new Date();
+  let start: Date;
+  if (duration === '7d') {
+    start = new Date(today);
+    start.setDate(today.getDate() - 6);
+  } else if (duration === '30d') {
+    start = new Date(today);
+    start.setDate(today.getDate() - 29);
+  } else {
+    start = new Date(today);
+    start.setDate(today.getDate() - 89);
+  }
+  const end = today;
+
+  // Prepare sales data with all days in the selected range
+  const salesData = analytics
+    ? fillMissingDays(
+        analytics.recentSales.filter(s => {
+          const d = new Date(s.date);
+          return d >= start && d <= end;
+        }),
+        start,
+        end
+      )
+    : [];
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-16 flex justify-center">
@@ -119,35 +167,78 @@ const VendorDashboard: React.FC = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Sales by Category Pie Chart */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Sales by Category</h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={analytics?.salesByCategory}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="sales" fill="#9b87f5" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-80 flex items-center justify-center">
+            {analytics?.salesByCategory && analytics.salesByCategory.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={analytics.salesByCategory}
+                    dataKey="sales"
+                    nameKey="category"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label={({ category, percent }) => `${category} (${(percent * 100).toFixed(0)}%)`}
+                  >
+                    {analytics.salesByCategory.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-500 text-center">No sales data available.</p>
+            )}
           </div>
         </div>
+        {/* Sales Bar Chart with dynamic duration */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Recent Sales</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Sales Bar Chart</h2>
+            <div>
+              <button
+                className={`px-3 py-1 rounded text-xs font-semibold mr-2 ${duration === '7d' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                onClick={() => setDuration('7d')}
+              >
+                7 Days
+              </button>
+              <button
+                className={`px-3 py-1 rounded text-xs font-semibold mr-2 ${duration === '30d' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                onClick={() => setDuration('30d')}
+              >
+                30 Days
+              </button>
+              <button
+                className={`px-3 py-1 rounded text-xs font-semibold ${duration === '90d' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                onClick={() => setDuration('90d')}
+              >
+                90 Days
+              </button>
+            </div>
+          </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={analytics?.recentSales}
+                data={salesData}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
                 <YAxis />
-                <Tooltip />
+                <Tooltip
+                  labelFormatter={date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                />
                 <Bar dataKey="amount" fill="#9b87f5" />
               </BarChart>
             </ResponsiveContainer>

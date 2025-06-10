@@ -51,7 +51,7 @@ const App = () => (
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-
+                  <Route path="/home" element={<NotFound />} />
                   {/* Buyer Routes */}
                   <Route element={<ProtectedRoute role="buyer" />}>
                     <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
