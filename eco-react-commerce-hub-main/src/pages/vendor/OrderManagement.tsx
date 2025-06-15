@@ -31,19 +31,16 @@ const OrderManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await getVendorOrders();
-        console.log("fetch orders", response.data);
-
-        // Map API response to Order type expected by frontend
         const mappedOrders = (response.data || []).map((item: any) => ({
           id: item.id,
           orderDate: item.orderDate,
           buyerName: item.buyerName,
-          buyerEmail: item.buyerEmail, // if available from backend
+          buyerEmail: item.buyerEmail,
           status: item.status,
           total: item.total,
           items: typeof item.items === 'string' ? JSON.parse(item.items) : item.items,
@@ -59,27 +56,23 @@ const OrderManagement: React.FC = () => {
         setLoading(false);
       }
     };
-    
     fetchOrders();
   }, []);
-  
+
   const toggleOrderDetails = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
-  
+
   const handleUpdateStatus = (orderId: string, newStatus: string) => {
-    // API endpoint for updating order status doesn't exist in the requirements,
-    // so we'll just simulate a successful update
-    setOrders(orders.map(order => 
+    setOrders(orders.map(order =>
       order.id === orderId ? { ...order, status: newStatus } : order
     ));
-    
     toast({
       title: 'Order status updated',
       description: `Order #${orderId} status changed to ${newStatus}`,
     });
   };
-  
+
   const handleAutoDeliver = async (orderId: string) => {
     try {
       await markOrderAsDelivered(orderId);
@@ -98,7 +91,7 @@ const OrderManagement: React.FC = () => {
       });
     }
   };
-  
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-16 flex justify-center">
@@ -106,7 +99,7 @@ const OrderManagement: React.FC = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -114,51 +107,53 @@ const OrderManagement: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Order Management</h1>
-      
       {orders.length > 0 ? (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div
+              key={order.id}
+              className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
+            >
               {/* Order Header */}
-              <div 
-                className="px-6 py-4 flex flex-wrap justify-between items-center cursor-pointer hover:bg-gray-50"
-                onClick={() => toggleOrderDetails(order.id)}
-              >
+              <div className="bg-gray-50 px-6 py-4 border-b flex flex-wrap justify-between items-center">
                 <div>
-                  <p className="font-medium">Order #{order.id}</p>
+                  <p className="text-sm text-gray-500">Order #{order.id}</p>
                   <p className="text-sm text-gray-500">
-                    {new Date(order.orderDate).toLocaleDateString()} • {order.buyerName}
+                    Placed on {new Date(order.orderDate).toLocaleDateString()}
                   </p>
+                  <p className="text-sm text-gray-500">Buyer: <span className="font-semibold">{order.buyerName}</span></p>
+                  {order.buyerEmail && (
+                    <p className="text-sm text-gray-400">{order.buyerEmail}</p>
+                  )}
                 </div>
-                
-                <div className="flex items-center">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold mr-4
-                    ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
-                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'}`}>
+                <div className="flex flex-col items-end">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold mb-1
+                      ${order.status.toLowerCase() === 'delivered'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                      }`
+                    }
+                  >
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
-                  <span className="font-semibold">${order.total.toFixed(2)}</span>
+                  <span className="text-lg font-semibold mt-1">${order.total.toFixed(2)}</span>
+                  <button
+                    onClick={() => toggleOrderDetails(order.id)}
+                    className="mt-2 text-xs text-indigo-600 hover:underline focus:outline-none"
+                  >
+                    {expandedOrder === order.id ? 'Hide Details' : 'Order Details'}
+                  </button>
                 </div>
               </div>
-              
               {/* Order Details */}
               {expandedOrder === order.id && (
-                <div className="p-6 border-t">
+                <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Customer Information */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Customer Information</h3>
-                      <p className="font-medium">{order.buyerName}</p>
-                      <p className="text-gray-600">{order.buyerEmail}</p>
-                    </div>
-                    
                     {/* Shipping Address */}
                     <div>
                       <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Shipping Address</h3>
@@ -167,7 +162,6 @@ const OrderManagement: React.FC = () => {
                       <p>{order.shippingAddress?.country}</p>
                     </div>
                   </div>
-                  
                   {/* Order Items */}
                   <div className="mt-6">
                     <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Order Items</h3>
@@ -202,7 +196,6 @@ const OrderManagement: React.FC = () => {
                       </table>
                     </div>
                   </div>
-                  
                   {/* Order Actions */}
                   <div className="mt-6 flex flex-wrap gap-2 justify-end">
                     {order.status === 'pending' && (

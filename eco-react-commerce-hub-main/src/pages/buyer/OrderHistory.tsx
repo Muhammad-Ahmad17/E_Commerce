@@ -29,7 +29,7 @@ const OrderHistory: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<{ [orderId: string]: boolean }>({});
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -75,11 +75,8 @@ const OrderHistory: React.FC = () => {
     fetchOrders();
   }, []);
 
-  const toggleExpand = (orderId: string) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [orderId]: !prev[orderId],
-    }));
+  const toggleOrderDetails = (orderId: string) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
   if (loading) {
@@ -107,12 +104,13 @@ const OrderHistory: React.FC = () => {
           <p className="mt-2 text-gray-500">You haven't placed any orders yet.</p>
         </div>
       ) : (
-        <div className="space-y-10">
+        <div className="space-y-8">
           {orders.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
+              className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
             >
+              {/* Order Header */}
               <div className="bg-gray-50 px-6 py-4 border-b flex flex-wrap justify-between items-center">
                 <div>
                   <p className="text-sm text-gray-500">Order #{order.id}</p>
@@ -124,70 +122,84 @@ const OrderHistory: React.FC = () => {
                   {order.deliveryStatus && (
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold mb-1
                       ${order.deliveryStatus === 'Order Completed' ? 'bg-green-100 text-green-800' :
-                        order.deliveryStatus === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                        order.deliveryStatus === 'Pending' || order.deliveryStatus === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'}`}>
                       {order.deliveryStatus}
                     </span>
                   )}
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold
                     ${order.status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
+                      order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'in progress' ? 'bg-yellow-100 text-yellow-800' :
                       order.status.toLowerCase() === 'shipped' ? 'bg-purple-100 text-purple-800' :
                       'bg-gray-100 text-gray-800'}`}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
-                  <p className="text-lg font-semibold mt-1">${order.total.toFixed(2)}</p>
+                  <span className="text-lg font-semibold mt-1">${order.total.toFixed(2)}</span>
                   <button
-                    onClick={() => toggleExpand(order.id)}
+                    onClick={() => toggleOrderDetails(order.id)}
                     className="mt-2 text-xs text-indigo-600 hover:underline focus:outline-none"
                   >
-                    {expanded[order.id] ? 'Hide Details' : 'Other Details'}
+                    {expandedOrder === order.id ? 'Hide Details' : 'Order Details'}
                   </button>
                 </div>
               </div>
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Items</h3>
-                <div className="space-y-4">
-                  {order.items.map((item) => (
-                    <div key={item.id} className="flex items-center border-b pb-2 last:border-b-0">
-                      <div className="ml-0 flex flex-1 flex-col">
-                        <div>
-                          <div className="flex justify-between text-base font-medium text-gray-900">
-                            <h4>
-                              <Link to={`/buyer/product/${item.productId}`} className="hover:text-brand">
-                                {item.name}
-                              </Link>
-                            </h4>
-                            <p className="ml-4">${item.price.toFixed(2)}</p>
-                          </div>
-                          <p className="mt-1 text-sm text-gray-500">Qty: {item.quantity}</p>
-                          {item.itemTotal !== undefined && (
-                            <p className="mt-1 text-sm text-gray-500">Item Total: ${item.itemTotal.toFixed(2)}</p>
-                          )}
-                        </div>
-                      </div>
+              {/* Order Details */}
+              {expandedOrder === order.id && (
+                <div className="p-6">
+                  {/* Shipping Address */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Shipping Address</h3>
+                      <p>{order.shippingAddress}</p>
+                      {order.postalCode && <p>{order.postalCode}</p>}
                     </div>
-                  ))}
-                </div>
-                {expanded[order.id] && (
-                  <div className="mt-6 border-t pt-4 space-y-2">
-                    {order.shippingAddress && (
-                      <p className="text-sm text-gray-600">
-                        <span className="font-semibold">Shipping Address:</span> {order.shippingAddress}
-                      </p>
-                    )}
-                    {order.postalCode && (
-                      <p className="text-sm text-gray-600">
-                        <span className="font-semibold">Postal Code:</span> {order.postalCode}
-                      </p>
-                    )}
                     {order.expectedDeliveryDate && (
-                      <p className="text-sm text-gray-600">
-                        <span className="font-semibold">Expected Delivery:</span> {new Date(order.expectedDeliveryDate).toLocaleDateString()}
-                      </p>
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Expected Delivery</h3>
+                        <p>{new Date(order.expectedDeliveryDate).toLocaleDateString()}</p>
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
+                  {/* Order Items */}
+                  <div className="mt-6">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Order Items</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
+                            <th className="px-4 py-2">Product</th>
+                            <th className="px-4 py-2">Quantity</th>
+                            <th className="px-4 py-2">Unit Price</th>
+                            <th className="px-4 py-2 text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {order.items.map((item) => (
+                            <tr key={item.id}>
+                              <td className="px-4 py-3">
+                                <Link to={`/buyer/product/${item.productId}`} className="hover:text-brand font-medium">
+                                  {item.name}
+                                </Link>
+                              </td>
+                              <td className="px-4 py-3">{item.quantity}</td>
+                              <td className="px-4 py-3">${item.price.toFixed(2)}</td>
+                              <td className="px-4 py-3 text-right">
+                                ${(item.itemTotal ?? item.price * item.quantity).toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="font-semibold">
+                            <td colSpan={3} className="px-4 py-3 text-right">Total</td>
+                            <td className="px-4 py-3 text-right">${order.total.toFixed(2)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

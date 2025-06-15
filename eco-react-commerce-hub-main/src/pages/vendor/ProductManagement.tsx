@@ -132,7 +132,7 @@ const ProductManagement: React.FC = () => {
         });
       } else {
         const response = await addVendorProduct(backendPayload);
-        setProducts([...products, { id: response.data.data.id, ...data }]);
+        setProducts([...products, { id: response.data.productId, ...data }]);
         toast({
           title: 'Product added',
           description: 'Your product has been added successfully.',

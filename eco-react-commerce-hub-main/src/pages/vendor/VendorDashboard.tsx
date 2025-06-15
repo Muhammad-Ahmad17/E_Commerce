@@ -11,7 +11,7 @@ type Analytics = {
   totalOrders: number;
   totalProducts: number;
   salesByCategory: { category: string; sales: number }[];
-  recentSales: { date: string; amount: number }[];
+  recentSales: { date: string; amount: number; orderCount?: number }[];
 };
 
 type OrderItem = {
@@ -33,15 +33,20 @@ type Order = {
 const COLORS = ['#9b87f5', '#6ee7b7', '#fbbf24', '#f87171', '#60a5fa', '#f472b6', '#34d399', '#facc15'];
 
 // Helper to fill missing days in the month with amount: 0
-function fillMissingDays(sales: { date: string; amount: number }[], start: Date, end: Date) {
-  const filled: { date: string; amount: number }[] = [];
-  const salesMap = Object.fromEntries(sales.map(s => [s.date.slice(0, 10), s.amount]));
+function fillMissingDays(
+  sales: { date: string; amount: number; orderCount?: number }[],
+  start: Date,
+  end: Date
+) {
+  const filled: { date: string; amount: number; orderCount: number }[] = [];
+  const salesMap = Object.fromEntries(sales.map(s => [s.date.slice(0, 10), s]));
   let current = new Date(start);
   while (current <= end) {
     const dateStr = current.toISOString().slice(0, 10);
     filled.push({
       date: dateStr,
-      amount: salesMap[dateStr] ?? 0,
+      amount: salesMap[dateStr]?.amount ?? 0,
+      orderCount: salesMap[dateStr]?.orderCount ?? 0,
     });
     current.setDate(current.getDate() + 1);
   }
@@ -117,7 +122,6 @@ const VendorDashboard: React.FC = () => {
   }
   const end = today;
 
-  // Prepare sales data with all days in the selected range
   const salesData = analytics
     ? fillMissingDays(
         analytics.recentSales.filter(s => {
@@ -128,6 +132,11 @@ const VendorDashboard: React.FC = () => {
         end
       )
     : [];
+
+  // Dynamic totals for selected duration
+  const totalSalesDynamic = salesData.reduce((sum, s) => sum + s.amount, 0);
+  // If you have order count per day, sum those; otherwise, count days with sales
+  const totalOrdersDynamic = salesData.reduce((sum, s) => sum + (s.orderCount || 0), 0);
 
   if (loading) {
     return (
@@ -152,12 +161,12 @@ const VendorDashboard: React.FC = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-brand">
-          <p className="text-sm font-medium text-gray-500">Total Sales</p>
-          <p className="text-2xl font-bold">${analytics?.totalSales.toFixed(2)}</p>
+          <p className="text-sm font-medium text-gray-500">Total Sales ({duration})</p>
+          <p className="text-2xl font-bold">${totalSalesDynamic.toFixed(2)}</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
-          <p className="text-sm font-medium text-gray-500">Total Orders</p>
-          <p className="text-2xl font-bold">{analytics?.totalOrders}</p>
+          <p className="text-sm font-medium text-gray-500">Total Orders ({duration})</p>
+          <p className="text-2xl font-bold">{totalOrdersDynamic}</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
           <p className="text-sm font-medium text-gray-500">Total Products</p>
@@ -237,6 +246,15 @@ const VendorDashboard: React.FC = () => {
                 />
                 <YAxis />
                 <Tooltip
+                  formatter={(value: any, name: string, props: any) => {
+                    if (name === 'amount') {
+                      return [`$${value.toFixed(2)}`, 'Sales'];
+                    }
+                    if (name === 'orderCount') {
+                      return [value, 'Orders'];
+                    }
+                    return [value, name];
+                  }}
                   labelFormatter={date => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 />
                 <Bar dataKey="amount" fill="#9b87f5" />
