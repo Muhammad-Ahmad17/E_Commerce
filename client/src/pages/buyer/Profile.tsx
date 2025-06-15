@@ -33,8 +33,6 @@ const Profile: React.FC = () => {
     const fetchProfile = async () => {
       try {
         const response = await getBuyerProfile();
-        console.log('Profile API response:', response);
-
         const data = response.data;
 
         // Split address into parts (very basic split, adjust as needed)

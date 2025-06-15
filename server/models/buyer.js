@@ -197,6 +197,22 @@ const query = `
   }
 
 
+
+  static async updateProfile(buyerId, fullName, emailAddress, preferences, address) {
+    try {
+      const pool = await connectDB();
+      const result = await pool.request()
+        .input('buyerId', sql.Int, buyerId)
+        .input('fullName', sql.NVarChar(100), fullName)
+        .input('preferences', sql.NVarChar(500), preferences)
+        .input('address', sql.NVarChar(500), address)
+        .execute('UpdateBuyerProfileProcedure');
+      return result.recordset[0];
+    } catch (error) {
+      throw new Error(`Failed to update profile: ${error.message}`);
+    }
+  }
+
   static async addReview(buyerId, productId, rating, comment) {
     try {
       const pool = await connectDB();

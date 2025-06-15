@@ -79,6 +79,70 @@ END;
 GO
 
 /*
+update buyer profile
+* Procedure: UpdateBuyerProfileProcedure
+* Purpose: Updates buyer profile information
+* Used By: Profile page
+* Dependencies: Buyer, User, Address
+* Error Codes:
+*   50001 - Invalid buyer ID    
+*   50005 - Invalid address data
+*   50010 - Database constraint violation   
+*/
+create or alter procedure updateBuyerProfile
+@fullName NVARCHAR(100),
+@addressLine1 NVARCHAR(255),
+@city NVARCHAR(100),
+@postalCode NVARCHAR(20),
+@country NVARCHAR(100),
+@preferences NVARCHAR(20)
+as 
+begin 
+    set NOCOUNT on;
+    begin try
+        declare @userId int;
+        select @userId = u.userId 
+        from [User] u
+        inner join Buyer b on u.userId = b.userId
+        where u.fullName = @fullName;
+
+        if @userId is null 
+            throw 50001, 'Invalid buyer ID', 1;
+
+        -- Update user profile
+        update [User]
+        set fullName = @fullName
+        where userId = @userId;
+
+        -- Update address
+        update Address
+        set addressLine1 = @addressLine1,
+            city = @city,
+            postalCode = @postalCode,
+            country = @country
+        where userId = @userId and isDefault = 1;
+
+        -- Update preferences
+        update Buyer
+        set preferences = @preferences
+        where userId = @userId;
+
+        select 'Profile updated successfully' as message;
+    end try
+    begin catch
+        if @@TRANCOUNT > 0 rollback;
+        throw;
+    end catch;
+end;
+GO
+exec updateBuyerProfile
+    @fullName = 'John Doe',
+    @addressLine1 = '123 Main St',
+    @city = 'Springfield',
+    @postalCode = '12345',
+    @country = 'USA',
+    @preferences = 'Electronics,Books';
+/*
 * Procedure: AddToCartProcedure
 * Purpose: Adds or updates product quantity in cart
 * Used By: Shopping cart operations
