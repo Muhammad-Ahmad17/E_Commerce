@@ -41,7 +41,6 @@ class Buyer {
           vendorName,
           description,
           imageUrl
-          
         FROM BuyerCategoryProducts
         WHERE categoryName = @category
       `;
@@ -51,6 +50,31 @@ class Buyer {
       return result.recordset;
     } catch (error) {
       throw new Error(`Failed to fetch selected products: ${error.message}`);
+    }
+  }
+
+  // Get products by search term
+  static async getProductSearch(searchTerm) {
+    try {
+      const pool = await connectDB();
+const query = `
+      SELECT DISTINCT
+        productId,
+        productName,
+        price,
+        categoryName,
+        vendorName,
+        description,
+        imageUrl
+      FROM BuyerCategoryProducts
+      WHERE productName LIKE @searchTerm
+    `;
+      const result = await pool.request()
+        .input('searchTerm', sql.NVarChar, `%${searchTerm}%`)
+        .query(query);
+      return result.recordset;
+    } catch (error) {
+      throw new Error(`Failed to fetch search products: ${error.message}`);
     }
   }
 

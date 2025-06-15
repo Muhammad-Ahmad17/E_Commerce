@@ -129,6 +129,8 @@ export const getVendorAnalytics = () => {
   return api.get('/api/vendors/analytics');
 };
 
+
+// new
 export const markOrderAsDelivered = (orderId: string) => {
   return api.put('/api/vendors/markOrderAsDelivered', { orderId });
 };
@@ -137,3 +139,9 @@ export const getReviewsByProduct = (productId: string) => {
   return api.get(`/api/buyer/getReviews/${productId}`);
 }
 
+export const getProductSearch = (searchTerm: string) => {
+  return api.get('/api/buyer/search', {
+    params: { searchTerm }
+  });
+  
+};

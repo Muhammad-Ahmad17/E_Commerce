@@ -29,6 +29,17 @@ exports.getSelectedProducts = async (req, res) => {
   }
 };
 
+exports.getProductSearch = async (req, res) => {
+  try {
+    const { searchTerm } = req.query;
+    const products = await Buyer.getProductSearch(searchTerm);
+    res.json(products);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+
 exports.getProductDetails = async (req, res) => {
   try {
     const { productId } = req.params;

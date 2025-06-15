@@ -10,4 +10,5 @@ router.get('/product/:productId', authenticateJWT, buyerController.getProductDet
 router.get('/orders', authenticateJWT, buyerController.getOrderHistory);
 router.post('/addReview', authenticateJWT, buyerController.addReview);
 router.get('/getReviews/:productId', authenticateJWT, buyerController.getReviews);
+router.get('/search', authenticateJWT, buyerController.getProductSearch);
 module.exports = router;

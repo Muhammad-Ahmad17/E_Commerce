@@ -330,16 +330,17 @@ JOIN Product p ON oi.productId = p.productId
 JOIN Vendor v ON p.vendorId = v.vendorId
 JOIN [User] u ON o.userId = u.userId
 JOIN Address a ON o.shippingAddressId = a.addressId
-WHERE p.isActive = 1 -- remove status == pending so that all product display on front
+-- WHERE p.isActive = 1 -- remove status == pending so that all product display on front
 GROUP BY v.vendorId, v.vendorName, o.orderId, o.orderDate, u.fullName, o.status, a.addressLine1, a.city, a.postalCode, a.country
 GO
-SELECT TOP 10 * FROM VendorPendingOrdersView;
+SELECT * FROM VendorPendingOrdersView;
 /*
 * View: VendorAnalyticsView
 * Purpose: Provides analytical data for vendor performance
 * Used By: Vendor analytics, Sales reports
 * Dependencies: User, Vendor, Product, OrderItem, ShopOrder, ProductReview
 */
+SELECT * FROM VendorAnalyticsView
 
 CREATE OR ALTER VIEW VendorAnalyticsView AS
 SELECT
@@ -360,11 +361,12 @@ SELECT
     GROUP BY c.categoryName
     FOR JSON PATH
   ) AS salesByCategory,
-  -- Recent Sales as JSON (last 7 days)
+  -- Recent Sales as JSON (now includes orderCount per day)
   (
     SELECT
       CONVERT(varchar(10), o2.orderDate, 120) AS date,
-      SUM(oi2.quantity * oi2.unitPrice) AS amount
+      SUM(oi2.quantity * oi2.unitPrice) AS amount,
+      COUNT(DISTINCT o2.orderId) AS orderCount
     FROM OrderItem oi2
     JOIN Product p2 ON oi2.productId = p2.productId
     JOIN ShopOrder o2 ON oi2.orderId = o2.orderId

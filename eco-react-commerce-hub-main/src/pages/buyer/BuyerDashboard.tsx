@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getRecommendedProducts, getProductsByCategory } from '@/services/api';
+import { getRecommendedProducts, getProductsByCategory, getProductSearch} from '@/services/api';
 import ProductCard from '@/components/ProductCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorMessage from '@/components/ErrorMessage';
@@ -22,6 +22,8 @@ const BuyerDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const location = useLocation();
+  const [searchTerm, setSearchTerm] = useState('');
+
   
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -62,6 +64,28 @@ const mappedProducts = (response.data || []).map((item: any, idx: number) => ({
     }
   };
   
+  const searchProducts = async (searchTerm: string) => {
+  setLoading(true);
+  try {
+    const response = await getProductSearch(searchTerm);
+    console.log('Product Search API response:', response);
+    const mappedProducts = (response.data || []).map((item: any, idx: number) => ({
+      id: item.productId?.toString() || idx.toString(),
+      name: item.productName,
+      price: item.price,
+      imageUrl: item.imageUrl || '',
+      category: item.categoryName,
+      description: item.description,
+      vendorName: item.vendorName,
+    }));
+    setProducts(mappedProducts);
+    setError(null);
+  } catch (err: any) {
+    setError(err.response?.data?.message || 'Failed to search products');
+  } finally {
+    setLoading(false);
+  }
+};
   const fetchProductsByCategory = async (category: string) => {
     setLoading(true);
     try {
@@ -140,22 +164,36 @@ const mappedProducts = (response.data || []).map((item: any, idx: number) => ({
         
         {/* Search and Sort (UI only for now) */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-brand"
-            />
-          </div>
-          <div>
-            <select className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-brand">
-              <option value="popularity">Sort by Popularity</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="newest">Newest First</option>
-            </select>
-          </div>
-        </div>
+  <div className="flex-1 flex">
+    <input
+      type="text"
+      placeholder="Search products..."
+      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-brand"
+      value={searchTerm}
+      onChange={e => setSearchTerm(e.target.value)}
+      onKeyDown={e => {
+        if (e.key === 'Enter') {
+          searchProducts(searchTerm);
+        }
+      }}
+    />
+    <Button
+      className="ml-2"
+      onClick={() => searchProducts(searchTerm)}
+      variant="outline"
+    >
+      Search
+    </Button>
+  </div>
+  <div>
+    <select className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-brand">
+      <option value="popularity">Sort by Popularity</option>
+      <option value="price_asc">Price: Low to High</option>
+      <option value="price_desc">Price: High to Low</option>
+      <option value="newest">Newest First</option>
+    </select>
+  </div>
+</div>
         
         
         {/* Products Grid */}
