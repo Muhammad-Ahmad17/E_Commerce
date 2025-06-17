@@ -198,7 +198,7 @@ const query = `
 
 
 
-  static async updateProfile(buyerId, fullName, emailAddress, preferences, address) {
+  static async updateProfile(buyerId, fullName, preferences, address) {
     try {
       const pool = await connectDB();
       const result = await pool.request()
