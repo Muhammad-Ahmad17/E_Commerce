@@ -17,18 +17,6 @@ GO
 * Dependencies: User, Role, Buyer, Category, Product, ProductImage, Vendor
 */
 
-SELECT  DISTINCT
-          productId,
-          productName,
-          price,
-          categoryName,
-          vendorName,
-          description,
-          imageUrl
-          
-        FROM BuyerCategoryProducts
-        WHERE categoryName like 'children'
-
 CREATE OR ALTER VIEW BuyerCategoryProducts--view
 AS
 SELECT 
@@ -70,7 +58,6 @@ GO
 * Used By: Product detail pages, Search results
 * Dependencies: Product, Category, Vendor, ProductImage, ProductReview
 */
-SELECT * FROM productReview
 CREATE OR ALTER VIEW ProductDetails
 AS
 SELECT 
@@ -108,7 +95,6 @@ WHERE p.isActive = 1
 GROUP BY 
     p.productId, p.productName, p.price, p.description, c.categoryName, pi.imageUrl, v.vendorName, p.stockQuantity
 GO
-SELECT * FROM ProductDetails wHERE productId = 43;
 
 /*
 View: productReview
@@ -127,12 +113,6 @@ FROM Product p
 INNER JOIN ProductReview pr ON p.productId = pr.productId;
 GO
  
-
-
-select * from ProductReviews
-where productId = 4;  
-
-
 /*
 * View: BuyerDashboardView
 * Purpose: Buyer's personalized dashboard information
