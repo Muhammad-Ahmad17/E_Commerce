@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL; 
 
 // Create axios instance
 const api = axios.create({
@@ -110,15 +110,15 @@ export const getVendorProducts = () => {
 };
 
 export const addVendorProduct = (productData: any) => {
-  return api.post('/api/vendors/addProduct', productData); // <-- FIXED
+  return api.post('/api/vendors/addProduct', productData); 
 };
 
 export const updateVendorProduct = (productId: string, productData: any) => {
-  return api.put('/api/vendors/updateProduct', { productId, ...productData }); // <-- FIXED
+  return api.put('/api/vendors/updateProduct', { productId, ...productData }); 
 };
 
 export const deleteVendorProduct = (productId: string) => {
-  return api.delete('/api/vendors/deleteProduct', { data: { productId } }); // <-- FIXED
+  return api.delete('/api/vendors/deleteProduct', { data: { productId } }); 
 };
 
 export const getVendorOrders = () => {

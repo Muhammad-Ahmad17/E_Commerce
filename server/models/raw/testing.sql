@@ -30,3 +30,8 @@ SELECT DISTINCT
         imageUrl
       FROM BuyerCategoryProducts
       WHERE productName LIKE @searchTerm
+
+
+
+      select * from ProductReviews
+          where productId = 8

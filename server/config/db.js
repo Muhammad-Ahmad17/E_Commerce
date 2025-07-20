@@ -16,7 +16,7 @@ const dbConfig = {
   database: process.env.DB_NAME,
   options: {
     encrypt: true,                 // Required by Azure
-    trustServerCertificate: false // Set to false for production
+    trustServerCertificate: true // Set to false for production
   }
 };
 
