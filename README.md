@@ -66,7 +66,7 @@ Run these files in your local SQL Server before using the API.
 
 ## 📖 Read Documentation
 
-For in-depth documentation of API routes, request structures, SQL scripts, and edge cases, please refer to the [📘 Full Documentation](./DOCUMENTATION.md) file in the project root.
+For in-depth documentation of API routes, request structures, SQL scripts, and edge cases, please refer to the [📘 Full Documentation](./Docomentation.pdf) file in the project root.
 
 ---
 
